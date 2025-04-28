@@ -1,0 +1,3 @@
+Write the story. A hostage taker story. Player is the negotiator. He has to solve the situation. You will now be asked to genereate some different parts of the story. (enviroment, characters, ...)
+
+Answer in one short sentence (debug)
