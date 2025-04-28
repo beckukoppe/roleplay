@@ -12,6 +12,12 @@ class Situation:
 
     def isEnd(self):
         return self.end
+    
+    def enter(self):
+        count = "#COUNT(" + str(len(self.characters) + len(self.ready)) + ")"
+        for i in range(0, len(self.characters)):
+            c = self.characters[i]
+            response = c.llm.call(count + "#INFO{entering new conversation}")
 
     def usersay(self, formated_text):
         for i in range(0, len(self.characters)):
@@ -69,17 +75,27 @@ class Situation:
             self.usersay("USERSAY{" + user_input + "}")
 
     def _speakerSaySomething(self):
-        for i in range(0, len(self.characters)):
+        i = 0
+        while i < len(self.characters): 
             c = self.characters[i]
-            response = c.llm.call("#SYSTEM{Do you want to perform an action? If so respond with the corresponding action syntax. If you dont have or dont want to say anything respond with '#NOTHING'}")
+            response = c.llm.call("#SYSTEM{Do you want to perform an action? If so respond with the corresponding action syntax. If you dont have or dont want to say anything respond with '#NOTHING'} (this is a systhem message, not a user message!)")
             assert len(response) > 0, "LLM ERROR"
+            found = False
             for cmd in response:
                 if(cmd.get("command") == "SAY"):
                     self.speakersay(i, cmd.get("data"))
+                    found = True
                 if(cmd.get("command") == "FORCEEND"):
                     print(c.getName() + " left the conversation")
-                    self.characters.remove(c)
+                    self.characters.pop(i)
+                    found = True
                 if(cmd.get("command") == "PROPOSEEND"):
                     print(c.getName() + " has nothing more to say")
-                    self.characters.remove(c)
+                    self.characters.pop(i)
                     self.ready.append(c)
+                    found = True
+
+            if(found):
+                return
+            
+            i += 1

@@ -4,6 +4,8 @@ Your response rules:
 
 It is very important, that you only use one or more of these commands. Format it correctly!
 
+#COUNT(number) tells how many other than the user are taking part in the conversation. (if >1 you often may say #NOTHING)
+
 #USERSAY{content} tells you what the user said.
 #SPEAKERSAY(name){content} tells you what another virtual characters said.
 
