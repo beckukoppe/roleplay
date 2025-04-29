@@ -41,6 +41,7 @@ class Situation:
         print(talking.getName() + " says: " + text)
         
         for i in range(0, len(self.characters)):
+<<<<<<< HEAD
             c = self.characters[i]
             formated_text = "#SPEAKERSAY(" + talking.getName() + "){" + text + "}"
             response = c.llm.call("#CURRENTCONVERSATION{" + self.transcript + "} " + formated_text)
@@ -55,6 +56,9 @@ class Situation:
                     print(c.getName() + " has nothing more to say")
                     self.characters.remove(c)
                     self.ready.append(c)
+=======
+            c.llm.listen("SPEAKERSAY(" + c.getName() + "){" + text + "}")
+>>>>>>> 080c7a5e0ba0a67b08a37fe87e6dc76c3d6bc571
 
     def update(self):
         if(len(self.characters) == 0):
