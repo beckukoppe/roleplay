@@ -24,7 +24,6 @@ class Situation:
     def usersay(self, formated_text):
         for i in range(0, len(self.characters)):
             c = self.characters[i]
-            print(self.transcript)
             response = c.llm.call(formated_text, "#CURRENTCONVERSATION {" + self.transcript + "}")
             self.transcript += formated_text
             assert len(response) > 0, "LLM ERROR"
@@ -40,11 +39,9 @@ class Situation:
     def speakersay(self, index, text):
         talking = self.characters[index]
         print(talking.getName() + " says: " + text)
-        
         i = 0
         while i < len(self.characters): 
             c = self.characters[i]
-            print(self.transcript)
             formated_text = "#SPEAKERSAY(" + talking.getName() + "){" + text + "}"
             response = c.llm.call(formated_text, "#CURRENTCONVERSATION {" + self.transcript + "}")
             self.transcript += formated_text
@@ -96,7 +93,6 @@ class Situation:
         i = 0
         while i < len(self.characters): 
             c = self.characters[i]
-            print(self.transcript)
             response = c.llm.ask("#YOURTURN(do you want to perform an action? if not #NOTHING)", "#CURRENTCONVERSATION" + self.transcript + "}")
             assert len(response) > 0, "LLM ERROR"
             someone = False
