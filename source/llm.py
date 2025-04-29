@@ -20,6 +20,8 @@ class LLM:
         self._user(message)
         response = self._send(self._history)
         self._system(response)
+        #print(self._history)
+
         print(response)
 
         return _parseCommands(response, self._commands)
