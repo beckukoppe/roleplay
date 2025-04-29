@@ -6,6 +6,7 @@ class Situation:
         self.ready = []
         self.responce = None
         self.end = False
+        self.transcript = ""
 
     def addCharacter(self, character):
         self.characters.append(character)
@@ -13,20 +14,20 @@ class Situation:
     def isEnd(self):
         return self.end
     
+    def leave(self):
+        print("leaving situation")
+    
     def enter(self):
-        count = "#COUNT(" + str(len(self.characters) + len(self.ready)) + ")"
-        for i in range(0, len(self.characters)):
-            c = self.characters[i]
-            response = c.llm.call(count + "#INFO{entering new conversation}")
+        count = "#COUNT(" + str(len(self.characters) + len(self.ready) + 1) + ")"
+        self.transcript += "#INFO{conversation with "  + count + " participants}" 
 
     def usersay(self, formated_text):
         for i in range(0, len(self.characters)):
             c = self.characters[i]
-            response = c.llm.call(formated_text)
+            response = c.llm.call("#CURRENTCONVERSATION" + self.transcript + "} " + formated_text)
+            self.transcript += formated_text
             assert len(response) > 0, "LLM ERROR"
             for cmd in response:
-                if(cmd.get("command") == "SAY"):
-                    self.speakersay(i, cmd.get("data"))
                 if(cmd.get("command") == "FORCEEND"):
                     print(c.getName() + " left the conversation")
                     self.characters.remove(c)
@@ -35,13 +36,25 @@ class Situation:
                     self.characters.remove(c)
                     self.ready.append(c)
 
-
     def speakersay(self, index, text):
-        c = self.characters[index]
-
-        print(c.getName() + " says: " + text)
+        talking = self.characters[index]
+        print(talking.getName() + " says: " + text)
+        
         for i in range(0, len(self.characters)):
-            c.llm.listen("SPEAKERSAY(" + c.getName() + "){" + text + "}");
+            c = self.characters[i]
+            formated_text = "#SPEAKERSAY(" + talking.getName() + "){" + text + "}"
+            response = c.llm.call("#CURRENTCONVERSATION{" + self.transcript + "} " + formated_text)
+            self.transcript += formated_text
+
+            assert len(response) > 0, "LLM ERROR"
+            for cmd in response:
+                if(cmd.get("command") == "FORCEEND"):
+                    print(c.getName() + " left the conversation")
+                    self.characters.remove(c)
+                if(cmd.get("command") == "PROPOSEEND"):
+                    print(c.getName() + " has nothing more to say")
+                    self.characters.remove(c)
+                    self.ready.append(c)
 
     def update(self):
         if(len(self.characters) == 0):
@@ -78,24 +91,24 @@ class Situation:
         i = 0
         while i < len(self.characters): 
             c = self.characters[i]
-            response = c.llm.call("#SYSTEM{Do you want to perform an action? If so respond with the corresponding action syntax. If you dont have or dont want to say anything respond with '#NOTHING'} (this is a systhem message, not a user message!)")
+            response = c.llm.ask("#YOURTURN")
             assert len(response) > 0, "LLM ERROR"
-            found = False
+            someone = False
             for cmd in response:
                 if(cmd.get("command") == "SAY"):
                     self.speakersay(i, cmd.get("data"))
-                    found = True
+                    someone = True
                 if(cmd.get("command") == "FORCEEND"):
                     print(c.getName() + " left the conversation")
                     self.characters.pop(i)
-                    found = True
+                    someone = True
                 if(cmd.get("command") == "PROPOSEEND"):
                     print(c.getName() + " has nothing more to say")
                     self.characters.pop(i)
                     self.ready.append(c)
-                    found = True
+                    someone = True
 
-            if(found):
+            if(someone):
                 return
             
             i += 1

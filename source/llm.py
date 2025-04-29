@@ -12,33 +12,47 @@ class LLM:
 
     def __init__(self, server_url, initial_prompt, commands):
         self._server_url = server_url
-        self._history = []
+        self._memory = []
         self._system(initial_prompt)
         self._commands = commands
 
     def call(self, message):
         self._user(message)
-        response = self._send(self._history)
-        self._system(response)
-        print(response)
+        response = self._send("memory:{" + self._stringFromMemory() + "} request:{" + message + "}")
+        self._llm(response)
+
+        return _parseCommands(response, self._commands)
+    
+    def ask(self, message):
+        self._user(message)
+        response = self._send("memory:{" + self._stringFromMemory() + "request:{" + "}")
 
         return _parseCommands(response, self._commands)
     
     def listen(self, message):
         self._user(message)
-
-    def getSummary(self):
-        return self.call("#SUMARIZE")
     
     def briefing(self, info):
-        self._system("briefing:" + info)
+        self._system(info)
+
+    def memorize(self, conversation):
+        response = self.ask("#SUMMARIZE(include what you feel and think about it and what you may would do if meeting again){" + conversation + "}")
+        self._system("#SUMMRAY(of a conversation you took place in){" + response + "}")
+
+        return _parseCommands(response, self._commands)
 
     def _send(self, messages):
         try:
             response = requests.post(self._server_url, json={
-                "messages": self._history,
+                #"model": MODEL_NAME,
+                "messages": self._memory,
                 "temperature": 0.7
             }, headers={"Content-Type": "application/json"})
+
+
+            if not response.status_code == 200:
+                print("Status Code Error: " + response.status_code)
+                print(response)
 
             reply = response.json()["choices"][0]["message"]["content"].strip()
 
@@ -46,14 +60,30 @@ class LLM:
             return clean_reply
             
         except Exception as e:
-            print(f"An LLM-Server Error occured: {e}")
+            print(f"LLM-Server-Error: {e}")
             return None
         
-    def _system(self, content):
-        self._history.append({"role": "system", "content": content})
+    def _llm(self, content):
+        self._memory.append({"role": "llm", "content": content})
 
     def _user(self, content):
-        self._history.append({"role": "user", "content": content})
+        self._memory.append({"role": "user", "content": content})
+
+    def _system(self, content):
+        self._memory.append({"role": "system", "content": content})
+
+    def _stringFromMemory(self):
+        """Format the memory as a readable string."""
+        if not self._memory:
+            return ""
+
+        lines = []
+        for entry in self._memory:
+            role = entry.get("role", "unknown")
+            content = entry.get("content", "")
+            lines.append(f"{role}: {content}")
+
+        return "".join(lines)
 
 
 def _parseCommands(text, commands):

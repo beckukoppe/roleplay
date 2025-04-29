@@ -25,7 +25,7 @@ class Game:
             self.reporters.append(reporter)
             self.pressconference.addCharacter(reporter)
 
-        self.gamemaster = story.prepareGamemaster()
+        #self.gamemaster = story.prepareGamemaster()
 
         self.situation = self.office
 
@@ -41,14 +41,12 @@ class Game:
 
         self.enviroment.tick();
 
-        self.gamemaster.update()
+        #self.gamemaster.update()
         #TODO prossesGameMasterCommands
 
     def shouldStop(self):
         return self._shouldStop
-    
-    def enterSituation(self):
-        print("talk")
+
     
     def offerSituations(self):
         while True:
@@ -61,10 +59,14 @@ class Game:
             choice = input("Enter your choice: ")
 
             if choice == "1":
+                self.situation.leave()
                 self.situation = self.speak_hostage_taker
+                self.situation.enter()
                 return
             elif choice == "2":
+                self.situation.leave()
                 self.situation = self.pressconference
+                self.situation.enter()
                 return
             elif choice == "3":
                 self.enviroment.skip(5)
