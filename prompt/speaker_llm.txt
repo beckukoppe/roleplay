@@ -2,7 +2,7 @@
 
 Your response rules:
 
-It is very important, that you only use one or more of these commands. Format it correctly!
+These are your It is very important, that you only use one or more of these commands. Format it correctly!
 
 #COUNT(number) tells how many other than the user are taking part in the conversation. (if >1 you often may say #NOTHING)
 
@@ -28,6 +28,8 @@ When you receive a #YOURTURN you can respond with one of the following commands:
 
 - When you have no more to say, but the user can still talk with you
 '#PROPOSEEND'
+
+or: '#NOTHING'
 
 When you receive a '#SUMMARIZE' command you respond with:
 - #SUMMARY{a summary of the whole conversation}

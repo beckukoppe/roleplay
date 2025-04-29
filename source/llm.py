@@ -16,18 +16,18 @@ class LLM:
         self._system(initial_prompt)
         self._commands = commands
 
-    def call(self, message):
+    def call(self, message, context=""):
         self._user(message)
-        response = self._send("memory:{" + self._stringFromMemory() + "} request:{" + message + "}")
+        print(message)
+        response = self._send("memory:{" + self._stringFromMemory() + "} context{" + context + "} request:{" + message + "}")
         self._llm(response)
-        #print(self._history)
-
+        print(response)
         return _parseCommands(response, self._commands)
     
-    def ask(self, message):
-        self._user(message)
-        response = self._send("memory:{" + self._stringFromMemory() + "request:{" + "}")
-
+    def ask(self, message, context=""):
+        #print(message)
+        response = self._send("memory:{" + self._stringFromMemory() + "} context{" + context + "} request:{" + message + "}")
+        print(response)
         return _parseCommands(response, self._commands)
     
     def listen(self, message):

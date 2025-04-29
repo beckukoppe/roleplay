@@ -23,7 +23,6 @@ class Game:
         for i in range(REPORTER_COUNT):
             reporter = story.prepareReporter()
             self.reporters.append(reporter)
-            self.pressconference.addCharacter(reporter)
 
         #self.gamemaster = story.prepareGamemaster()
 
@@ -60,11 +59,14 @@ class Game:
 
             if choice == "1":
                 self.situation.leave()
+                self.speak_hostage_taker.addCharacter(self.hostage_taker)
                 self.situation = self.speak_hostage_taker
                 self.situation.enter()
                 return
             elif choice == "2":
                 self.situation.leave()
+                for r in self.reporters:
+                    self.pressconference.addCharacter(r)
                 self.situation = self.pressconference
                 self.situation.enter()
                 return
