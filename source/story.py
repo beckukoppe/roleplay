@@ -37,7 +37,8 @@ class Story:
         return enviroment
         
     def prepareGamemaster(self):
-        preperation = self.story_llm.call("Generate the preperation for the GAMEMASTER")
-        gamemaster = Gamemaster(preperation)
+        preperation = self.story_llm.call("Generate the preperation for the as '#GAMEMASTER{content}'")
+        assert len(preperation) > 0, "LLM ERROR"
+        gamemaster = Gamemaster(preperation[0].get("data"))
         print("gamemaster...")
         return gamemaster

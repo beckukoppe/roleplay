@@ -1,3 +1,5 @@
+import util as util
+
 class Situation:
     def __init__(self, name, enviroment, gamemaster):
         self.name = name
@@ -17,12 +19,16 @@ class Situation:
         return self.end
     
     def leave(self):
-        print("leaving situation")
+        self.gamemaster.llm.sumup(self.transcript)
     
     def enter(self):
-        count = "#COUNT(" + str(len(self.characters) + len(self.ready) + 1) + ")"
-        self.transcript += "#INFO{conversation with "  + count + " participants}"
-        scenario = self.gamemaster.getScenario(self.name, self.characters)
+        names = ""
+        for c in self.characters:
+            names += c.getName() + ","
+
+        #count = "#COUNT(" + str(len(self.characters) + len(self.ready) + 1) + ")"
+        #self.transcript += "#INFO{conversation with "  + count + " participants: " + names + "}"
+        scenario = self.gamemaster.getScenario(self.name, names)
         self.transcript += "\n#SCENARIO{" + scenario + "}"
 
     def usersay(self, formated_text):
@@ -44,6 +50,7 @@ class Situation:
         print(talking.getName() + " says: " + text)
         
         for i in range(0, len(self.characters)):
+            #if index == i: continue
             c = self.characters[i]
             formated_text = "#SPEAKERSAY(" + talking.getName() + "){" + text + "}"
             response = c.llm.call(formated_text, "#CURRENTCONVERSATION {" + self.transcript + "}")
@@ -64,11 +71,11 @@ class Situation:
         while len(self.leaving) > 0:
             c = self.leaving[0]
             c.llm.memorize(self.transcript)
-            self.characters.remove(c)
+            util.try_remove(self.characters, c)
             self.leaving.remove(c)
 
         for c in self.ready:
-            self.characters.remove(c)
+            util.try_remove(self.characters, c)
 
         if(len(self.characters) == 0):
             if(len(self.ready) > 0 and not self.userEndConversation()):
@@ -78,10 +85,23 @@ class Situation:
                 return
             else:
                 self.end = True
-                print("leaving situation...")
+                for c in self.ready:
+                    c.llm.memorize(self.transcript)
                 return
 
         self._speakerSaySomething()
+
+        if(len(self.characters) == 0):
+            if(len(self.ready) > 0 and not self.userEndConversation()):
+                self.characters.extend(self.ready)
+                self.ready.clear()
+                self._userSaySomething()
+                return
+            else:
+                self.end = True
+                for c in self.ready:
+                    c.llm.memorize(self.transcript)
+                return
 
         self._userSaySomething()
 

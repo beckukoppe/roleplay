@@ -14,6 +14,7 @@ class Game:
         self.enviroment = story.prepareEnviroment()
 
         self.office = Situation("office", self.enviroment, self.gamemaster)
+        self.office.transcript = "#INFO{nothing happended}"
 
         self.hostage_taker = story.prepareHostageTaker()
 

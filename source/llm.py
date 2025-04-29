@@ -6,9 +6,9 @@ class LLM:
     GAMEMASTER_URL = "http://localhost:8081/v1/chat/completions"
     SPEAKER_URL = "http://localhost:8081/v1/chat/completions"
 
-    STORY_COMMANDS = ["TIME", "NAME", "CHARACTER", "STORY"]
-    GAMEMASTER_COMMANDS = ["SCENARIO"]
-    SPEAKER_COMMANDS=["NOTHING", "SAY", "FORCEEND", "PROPOSEEND"]
+    STORY_COMMANDS = ["TIME", "NAME", "CHARACTER", "STORY", "GAMEMASTER"]
+    GAMEMASTER_COMMANDS = ["SCENARIO", "SUMMARY"]
+    SPEAKER_COMMANDS=["NOTHING", "SAY", "FORCEEND", "PROPOSEEND", "SUMMARY"]
 
     def __init__(self, server_url, initial_prompt, commands):
         self._server_url = server_url
@@ -58,9 +58,16 @@ class LLM:
 
     def memorize(self, conversation):
         response = self.ask("#SUMMARIZE(include what you feel and think about it and what you may would do if meeting again){" + conversation + "}")
-        self._system("#SUMMRAY(of a conversation you took place in){" + response + "}")
+        assert len(response) > 0, "LLM ERROR"
+        for cmd in response:
+            self._system("#SUMMARY(of a conversation you took place in){" + cmd.get("data", "") + "}")
 
-        return _parseCommands(response, self._commands)
+    def sumup(self, conversation):
+        response = self.ask("#SUMMARIZE{" + conversation + "}. Answer with #SUMMARY{content}")
+        assert len(response) > 0, "LLM ERROR"
+        for cmd in response:
+            print(cmd)
+            self._system("#SUMMARY(of a conversation you took place in){" + cmd.get("data", "") + "}")
 
     def _send(self, messages):
         response = requests.post(self._server_url, json={
