@@ -41,7 +41,7 @@ class Situation:
 
         print(c.getName() + " says: " + text)
         for i in range(0, len(self.characters)):
-            c.llm.listen("SPEAKERSAY(" + c.getName() + "){" + text + "}");
+            c.llm.listen("SPEAKERSAY(" + c.getName() + "){" + text + "}")
 
     def update(self):
         if(len(self.characters) == 0):
