@@ -13,7 +13,7 @@ class Game:
 
         self.enviroment = story.prepareEnviroment()
 
-        self.office = Situation("office", self.enviroment)
+        self.office = Situation("office", self.enviroment, self.gamemaster)
 
         self.hostage_taker = story.prepareHostageTaker()
 
@@ -56,13 +56,13 @@ class Game:
 
             if choice == "1":
                 self.situation.leave()
-                self.situation = Situation("speak_hostage_taker", self.enviroment)
+                self.situation = Situation("speak_hostage_taker", self.enviroment, self.gamemaster)
                 self.situation.addCharacter(self.hostage_taker)
                 self.situation.enter()
                 return
             elif choice == "2":
                 self.situation.leave()
-                self.situation = Situation("pressconference", self.enviroment)
+                self.situation = Situation("pressconference", self.enviroment, self.gamemaster)
                 for r in self.reporters:
                     self.situation.addCharacter(r)
                 self.situation.enter()
