@@ -6,7 +6,7 @@ class LLM:
     GAMEMASTER_URL = "http://localhost:8081/v1/chat/completions"
     SPEAKER_URL = "http://localhost:8081/v1/chat/completions"
 
-    STORY_COMMANDS = ["TIME", "NAME", "CHARACTER"]
+    STORY_COMMANDS = ["TIME", "NAME", "CHARACTER", "STORY"]
     GAMEMASTER_COMMANDS = ["NOTHING", "STARTPROPMPT"]
     SPEAKER_COMMANDS=["NOTHING", "SAY", "FORCEEND", "PROPOSEEND"]
 
@@ -16,24 +16,39 @@ class LLM:
         self._system(initial_prompt)
         self._commands = commands
 
-    def call(self, message, context=None):
+    def call(self, message, context=None, failcount=0):
         temp = self._memory.copy()
 
         if(context):
             temp.append({"role": "user", "content": "conversation:" + context})
         temp.append({"role": "user", "content": "request:" + message}) 
         response = self._send(temp)
-        self._user(message)
-        self._llm(response)
-        return _parseCommands(response, self._commands)
+        result = _parseCommands(response, self._commands)
+
+        if(result):
+            self._user(message)
+            self._llm(response)
+            return result
+        else:
+            print("LLM FAILED TO FOLLOW ORDERS: #" + str(failcount))
+            print(response + "\n")
+            return self.call(message, context, failcount + 1)
+
     
-    def ask(self, message, context=None):
+    def ask(self, message, context=None, failcount=0):
         temp = self._memory.copy()
         if(context):
             temp.append({"role": "user", "content": "conversation:" + context})
         temp.append({"role": "user", "content": "request:" + message})   
         response = self._send(temp)
-        return _parseCommands(response, self._commands)
+        result = _parseCommands(response, self._commands)
+
+        if(result):
+            return result
+        else:
+            print("LLM FAILED TO FOLLOW ORDERS: #" + str(failcount))
+            print(response + "\n")
+            return self.ask(message, context, failcount + 1)
     
     def listen(self, message):
         self._user(message)

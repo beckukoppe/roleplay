@@ -4,6 +4,7 @@ class Situation:
         self.enviroment = enviroment
         self.characters = []
         self.ready = []
+        self.leaving = []
         self.responce = None
         self.end = False
         self.transcript = ""
@@ -30,17 +31,16 @@ class Situation:
             for cmd in response:
                 if(cmd.get("command") == "FORCEEND"):
                     print(c.getName() + " left the conversation")
-                    self.characters.remove(c)
+                    self.leaving.append(c)
                 if(cmd.get("command") == "PROPOSEEND"):
                     print(c.getName() + " has nothing more to say")
-                    self.characters.remove(c)
                     self.ready.append(c)
 
     def speakersay(self, index, text):
         talking = self.characters[index]
         print(talking.getName() + " says: " + text)
-        i = 0
-        while i < len(self.characters): 
+        
+        for i in range(0, len(self.characters)):
             c = self.characters[i]
             formated_text = "#SPEAKERSAY(" + talking.getName() + "){" + text + "}"
             response = c.llm.call(formated_text, "#CURRENTCONVERSATION {" + self.transcript + "}")
@@ -50,15 +50,23 @@ class Situation:
             for cmd in response:
                 if(cmd.get("command") == "FORCEEND"):
                     print(c.getName() + " left the conversation")
-                    self.characters.remove(c)
+                    self.leaving.append(c)
                 elif(cmd.get("command") == "PROPOSEEND"):
                     print(c.getName() + " has nothing more to say")
-                    self.characters.remove(c)
                     self.ready.append(c)
                 else:
                     i += 1
 
     def update(self):
+        while len(self.leaving) > 0:
+            c = self.leaving[0]
+            c.llm.memorize(self.transcript)
+            self.characters.remove(c)
+            self.leaving.remove(c)
+
+        for c in self.ready:
+            self.characters.remove(c)
+
         if(len(self.characters) == 0):
             if(len(self.ready) > 0 and not self.userEndConversation()):
                 self.characters.extend(self.ready)

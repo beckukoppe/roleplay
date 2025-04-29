@@ -8,7 +8,7 @@ from llm import LLM
 class Story:
     def __init__(self):
         self.story_llm = LLM(LLM.STORY_URL, util.readFile("prompt/story_llm.txt"), LLM.STORY_COMMANDS)
-        self.story = self.story_llm.call("Generate the story (brief)")
+        self.story = self.story_llm.call("Generate the story (brief) as '#STORY{content}'")
         print("story...")
         
     def prepareHostageTaker(self):

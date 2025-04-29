@@ -13,8 +13,6 @@ class Game:
         self.enviroment = story.prepareEnviroment()
 
         self.office = Situation("office", self.enviroment)
-        self.speak_hostage_taker = Situation("speak_hostage_taker", self.enviroment)
-        self.pressconference = Situation("pressconference", self.enviroment)
 
         self.hostage_taker = story.prepareHostageTaker()
 
@@ -58,15 +56,15 @@ class Game:
 
             if choice == "1":
                 self.situation.leave()
-                self.speak_hostage_taker.addCharacter(self.hostage_taker)
-                self.situation = self.speak_hostage_taker
+                self.situation = Situation("speak_hostage_taker", self.enviroment)
+                self.situation.addCharacter(self.hostage_taker)
                 self.situation.enter()
                 return
             elif choice == "2":
                 self.situation.leave()
+                self.situation = Situation("pressconference", self.enviroment)
                 for r in self.reporters:
-                    self.pressconference.addCharacter(r)
-                self.situation = self.pressconference
+                    self.situation.addCharacter(r)
                 self.situation.enter()
                 return
             elif choice == "3":
