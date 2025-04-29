@@ -13,13 +13,7 @@ class Game:
 
         self.enviroment = story.prepareEnviroment()
 
-<<<<<<< HEAD
         self.office = Situation("office", self.enviroment)
-=======
-        self.office = Situation("office", self.enviroment, self.gamemaster)
-        self.speak_hostage_taker = Situation("speak_with_hostage_taker", self.enviroment, self.gamemaster)
-        self.pressconference = Situation("pressconference", self.enviroment, self.gamemaster)
->>>>>>> 07535d6ee4e9687f33f4d372175b32d93b41d1b8
 
         self.hostage_taker = story.prepareHostageTaker()
 
