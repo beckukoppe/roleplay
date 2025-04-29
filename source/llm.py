@@ -17,19 +17,23 @@ class LLM:
         self._system(initial_prompt)
         self._commands = commands
 
-    def call(self, message):
-        self._user(message)
-        response = self._send("memory:{" + self._stringFromMemory() + "} request:{" + message + "}")
-        self._llm(response)
-        print(self._memory)
-        print("\n")
+    def call(self, message, context=None):
+        temp = self._memory.copy()
 
+        if(context):
+            temp.append({"role": "user", "content": "conversation:" + context})
+        temp.append({"role": "user", "content": "request:" + message}) 
+        response = self._send(temp)
+        self._user(message)
+        self._llm(response)
         return _parseCommands(response, self._commands)
     
-    def ask(self, message):
-        self._user(message)
-        response = self._send("memory:{" + self._stringFromMemory() + "request:{" + "}")
-
+    def ask(self, message, context=None):
+        temp = self._memory.copy()
+        if(context):
+            temp.append({"role": "user", "content": "conversation:" + context})
+        temp.append({"role": "user", "content": "request:" + message})   
+        response = self._send(temp)
         return _parseCommands(response, self._commands)
     
     def listen(self, message):
@@ -45,48 +49,29 @@ class LLM:
         return _parseCommands(response, self._commands)
 
     def _send(self, messages):
-        try:
-            response = requests.post(self._server_url, json={
+        response = requests.post(self._server_url, json={
                 #"model": MODEL_NAME,
-                "messages": self._memory,
+                "messages": messages,
                 "temperature": 0.7
-            }, headers={"Content-Type": "application/json"})
+        }, headers={"Content-Type": "application/json"})
 
-            if not response.status_code == 200:
-                print("Status Code Error: " + response.status_code)
-                print(response)
+        if not response.status_code == 200:
+            print("Status Code Error: " + str(response.status_code))
+            print(response.json())
 
-            reply = response.json()["choices"][0]["message"]["content"].strip()
+        reply = response.json()["choices"][0]["message"]["content"].strip()
 
-            clean_reply = reply.replace("\n", " ").replace("\r", "")
-            return clean_reply
-            
-        except Exception as e:
-            print(f"LLM-Server-Error: {e}")
-            return None
+        clean_reply = reply.replace("\n", " ").replace("\r", "")
+        return clean_reply
         
     def _llm(self, content):
-        self._memory.append({"role": "llm", "content": content})
+        self._memory.append({"role": "system", "content": content})
 
     def _user(self, content):
         self._memory.append({"role": "user", "content": content})
 
     def _system(self, content):
-        self._memory.append({"role": "system", "content": content})
-
-    def _stringFromMemory(self):
-        """Format the memory as a readable string."""
-        if not self._memory:
-            return ""
-
-        lines = []
-        for entry in self._memory:
-            role = entry.get("role", "unknown")
-            content = entry.get("content", "")
-            lines.append(f"{role}: {content}")
-
-        return "".join(lines)
-
+        self._memory.append({"role": "user", "content": content})
 
 def _parseCommands(text, commands):
     """

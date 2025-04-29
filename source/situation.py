@@ -23,12 +23,11 @@ class Situation:
         self.transcript += "#INFO{conversation with "  + count + " participants}"
         scenario = self.gamemaster.getScenario(self.name, self.characters)
         self.transcript += "\n#SCENARIO{" + scenario + "}"
-        print("transcript:\n"+self.transcript+"\n\n")
 
     def usersay(self, formated_text):
         for i in range(0, len(self.characters)):
             c = self.characters[i]
-            response = c.llm.call("#CURRENTCONVERSATION" + self.transcript + "} " + formated_text)
+            response = c.llm.call(formated_text, "#CURRENTCONVERSATION {" + self.transcript + "}")
             self.transcript += formated_text
             assert len(response) > 0, "LLM ERROR"
             for cmd in response:
@@ -43,11 +42,11 @@ class Situation:
     def speakersay(self, index, text):
         talking = self.characters[index]
         print(talking.getName() + " says: " + text)
-        
-        for i in range(0, len(self.characters)):
+        i = 0
+        while i < len(self.characters): 
             c = self.characters[i]
             formated_text = "#SPEAKERSAY(" + talking.getName() + "){" + text + "}"
-            response = c.llm.call("#CURRENTCONVERSATION{" + self.transcript + "} " + formated_text)
+            response = c.llm.call(formated_text, "#CURRENTCONVERSATION {" + self.transcript + "}")
             self.transcript += formated_text
 
             assert len(response) > 0, "LLM ERROR"
@@ -55,14 +54,16 @@ class Situation:
                 if(cmd.get("command") == "FORCEEND"):
                     print(c.getName() + " left the conversation")
                     self.characters.remove(c)
-                if(cmd.get("command") == "PROPOSEEND"):
+                elif(cmd.get("command") == "PROPOSEEND"):
                     print(c.getName() + " has nothing more to say")
                     self.characters.remove(c)
                     self.ready.append(c)
+                else:
+                    i += 1
 
     def update(self):
         if(len(self.characters) == 0):
-            if(len(self.ready) > 0 and self.userEndConversation()):
+            if(len(self.ready) > 0 and not self.userEndConversation()):
                 self.characters.extend(self.ready)
                 self.ready.clear()
                 self._userSaySomething()
@@ -95,7 +96,7 @@ class Situation:
         i = 0
         while i < len(self.characters): 
             c = self.characters[i]
-            response = c.llm.ask("#YOURTURN")
+            response = c.llm.ask("#YOURTURN(do you want to perform an action? if not #NOTHING)", "#CURRENTCONVERSATION" + self.transcript + "}")
             assert len(response) > 0, "LLM ERROR"
             someone = False
             for cmd in response:
