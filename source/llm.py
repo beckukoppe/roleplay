@@ -7,7 +7,7 @@ class LLM:
     SPEAKER_URL = "http://localhost:8081/v1/chat/completions"
 
     STORY_COMMANDS = ["TIME", "NAME", "CHARACTER", "STORY"]
-    GAMEMASTER_COMMANDS = ["NOTHING", "STARTPROPMPT"]
+    GAMEMASTER_COMMANDS = ["SCENARIO"]
     SPEAKER_COMMANDS=["NOTHING", "SAY", "FORCEEND", "PROPOSEEND"]
 
     def __init__(self, server_url, initial_prompt, commands):

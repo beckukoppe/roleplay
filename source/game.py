@@ -9,10 +9,17 @@ class Game:
         self._shouldStop = False
 
         story = Story()
+        self.gamemaster = story.prepareGamemaster()
 
         self.enviroment = story.prepareEnviroment()
 
+<<<<<<< HEAD
         self.office = Situation("office", self.enviroment)
+=======
+        self.office = Situation("office", self.enviroment, self.gamemaster)
+        self.speak_hostage_taker = Situation("speak_with_hostage_taker", self.enviroment, self.gamemaster)
+        self.pressconference = Situation("pressconference", self.enviroment, self.gamemaster)
+>>>>>>> 07535d6ee4e9687f33f4d372175b32d93b41d1b8
 
         self.hostage_taker = story.prepareHostageTaker()
 
@@ -21,7 +28,6 @@ class Game:
             reporter = story.prepareReporter()
             self.reporters.append(reporter)
 
-        #self.gamemaster = story.prepareGamemaster()
 
         self.situation = self.office
 

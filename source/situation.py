@@ -1,5 +1,5 @@
 class Situation:
-    def __init__(self, name, enviroment):
+    def __init__(self, name, enviroment, gamemaster):
         self.name = name
         self.enviroment = enviroment
         self.characters = []
@@ -8,6 +8,7 @@ class Situation:
         self.responce = None
         self.end = False
         self.transcript = ""
+        self.gamemaster = gamemaster
 
     def addCharacter(self, character):
         self.characters.append(character)
@@ -20,7 +21,9 @@ class Situation:
     
     def enter(self):
         count = "#COUNT(" + str(len(self.characters) + len(self.ready) + 1) + ")"
-        self.transcript += count 
+        self.transcript += "#INFO{conversation with "  + count + " participants}"
+        scenario = self.gamemaster.getScenario(self.name, self.characters)
+        self.transcript += "\n#SCENARIO{" + scenario + "}"
 
     def usersay(self, formated_text):
         for i in range(0, len(self.characters)):
