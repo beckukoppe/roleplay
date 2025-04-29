@@ -6,8 +6,9 @@ class LLM:
     GAMEMASTER_URL = "http://localhost:8081/v1/chat/completions"
     SPEAKER_URL = "http://localhost:8081/v1/chat/completions"
 
+
     STORY_COMMANDS = ["TIME", "NAME", "CHARACTER"]
-    GAMEMASTER_COMMANDS = ["NOTHING", "STARTPROPMPT"]
+    GAMEMASTER_COMMANDS = ["SCENARIO"]
     SPEAKER_COMMANDS=["NOTHING", "SAY", "FORCEEND", "PROPOSEEND"]
 
     def __init__(self, server_url, initial_prompt, commands):
@@ -20,7 +21,8 @@ class LLM:
         self._user(message)
         response = self._send("memory:{" + self._stringFromMemory() + "} request:{" + message + "}")
         self._llm(response)
-        #print(self._history)
+        print(self._memory)
+        print("\n")
 
         return _parseCommands(response, self._commands)
     
