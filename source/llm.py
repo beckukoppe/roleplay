@@ -18,16 +18,12 @@ class LLM:
 
     def call(self, message, context=""):
         self._user(message)
-        print(message)
         response = self._send("memory:{" + self._stringFromMemory() + "} context{" + context + "} request:{" + message + "}")
         self._llm(response)
-        print(response)
         return _parseCommands(response, self._commands)
     
     def ask(self, message, context=""):
-        #print(message)
         response = self._send("memory:{" + self._stringFromMemory() + "} context{" + context + "} request:{" + message + "}")
-        print(response)
         return _parseCommands(response, self._commands)
     
     def listen(self, message):
@@ -46,7 +42,7 @@ class LLM:
         try:
             response = requests.post(self._server_url, json={
                 #"model": MODEL_NAME,
-                "messages": self._memory,
+                "messages": messages,
                 "temperature": 0.7
             }, headers={"Content-Type": "application/json"})
 
@@ -64,26 +60,21 @@ class LLM:
             return None
         
     def _llm(self, content):
-        self._memory.append({"role": "llm", "content": content})
+        self._memory.append({"role": "system", "content": content})
 
     def _user(self, content):
         self._memory.append({"role": "user", "content": content})
 
     def _system(self, content):
-        self._memory.append({"role": "system", "content": content})
+        self._memory.append({"role": "user", "content": content})
 
     def _stringFromMemory(self):
-        """Format the memory as a readable string."""
-        if not self._memory:
-            return ""
-
-        lines = []
+        ret = ""
         for entry in self._memory:
-            role = entry.get("role", "unknown")
-            content = entry.get("content", "")
-            lines.append(f"{role}: {content}")
-
-        return "".join(lines)
+            role = entry.get("role")
+            content = entry.get("content")
+            ret += "{role:" + role + "content" + content + "}"
+        return ret
 
 
 def _parseCommands(text, commands):

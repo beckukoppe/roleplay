@@ -17,7 +17,6 @@ class Game:
         self.pressconference = Situation("pressconference", self.enviroment)
 
         self.hostage_taker = story.prepareHostageTaker()
-        self.speak_hostage_taker.addCharacter(self.hostage_taker)
 
         self.reporters = []
         for i in range(REPORTER_COUNT):
