@@ -129,6 +129,7 @@ class Situation:
             someone = False
             for cmd in response:
                 if(cmd.get("command") == "SAY"):
+                    print(cmd)
                     self.speakersay(i, cmd.get("data"))
                     someone = True
                 if(cmd.get("command") == "FORCEEND"):

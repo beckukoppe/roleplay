@@ -16,14 +16,16 @@ class LLM:
         self._system(initial_prompt)
         self._commands = commands
 
-    def call(self, message, context=None, failcount=0):
+    def call(self, message, context=None, failcount=0, reminder=None):
         temp = self._memory.copy()
 
         if(context):
             temp.append({"role": "user", "content": "conversation:" + context})
-        temp.append({"role": "user", "content": "request:" + message}) 
+        temp.append({"role": "user", "content": "request:" + message})
+        if(reminder):
+            temp.append({"role": "user", "content": "REMINDER:" + reminder})
         response = self._send(temp)
-        result = _parseCommands(response, self._commands)
+        result, newReminder = _parseCommands(response, self._commands)
 
         if(result):
             self._user(message)
@@ -32,23 +34,26 @@ class LLM:
         else:
             print("LLM FAILED TO FOLLOW ORDERS: #" + str(failcount))
             print(response + "\n")
-            return self.call(message, context, failcount + 1)
+            return self.call(message, context, failcount + 1, newReminder)
 
     
-    def ask(self, message, context=None, failcount=0):
+    def ask(self, message, context=None, failcount=0, reminder=None):
         temp = self._memory.copy()
         if(context):
             temp.append({"role": "user", "content": "conversation:" + context})
-        temp.append({"role": "user", "content": "request:" + message})   
+        temp.append({"role": "user", "content": "request:" + message})
+        if(reminder):
+            temp.append({"role": "user", "content": "REMINDER:" + reminder})     
         response = self._send(temp)
-        result = _parseCommands(response, self._commands)
+        
+        result, newReminder = _parseCommands(response, self._commands)
 
         if(result):
             return result
         else:
             print("LLM FAILED TO FOLLOW ORDERS: #" + str(failcount))
             print(response + "\n")
-            return self.ask(message, context, failcount + 1)
+            return self.ask(message, context, failcount + 1, newReminder)
     
     def listen(self, message):
         self._user(message)
@@ -118,21 +123,45 @@ def _parseCommands(text, commands):
     matches = list(re.finditer(pattern, text))
 
     if not matches:
-        return []
+        return [], "use one of the specified commands with correct syntax!"
 
     results = []
     for match in matches:
         command, data, param = match.groups()
-        result = {'command': command}
+        ans = {'command': command}
         
         if data is not None:
-            result['data'] = data
+            ans['data'] = data
         elif param is not None:
-            result['param'] = param
+            ans['param'] = param
         
-        results.append(result)
+        results.append(ans)
+
+    reminder = ""
+    for cmd in results:
+        reminder += _checkCommand(cmd)
+
+    if(reminder != ""):
+        results = None
     
-    return results
+    return results, reminder
 
+def _checkCommand(command):
+    #if(command.get("command") == "NOTHING"):
+    
+    if(command.get("command") == "SAY"):
+        if(command.get("data", "") == ""):
+            return "Syntax of #SAY is '#SAY{...}' where ... must be what you want to say"
 
+    #if(command.get("command") == "FORCEEND"):
 
+    #if(command.get("command") == "PROPOSEEND"):
+
+    #if(command.get("command") == "SUMMARY"):
+        #return ""
+
+    #if(command.get("command") == "SCENARIO"):
+        #return ""
+
+    #unproblematic command
+    return ""
