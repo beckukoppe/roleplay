@@ -41,7 +41,7 @@ class Situation:
     def usersay(self, formated_text):
         for i in range(0, len(self.characters)):
             c = self.characters[i]
-            response = c.llm.call(formated_text, "#CURRENTCONVERSATION {" + self.transcript + "}")
+            response = c.llm.ask(formated_text, "#CURRENTCONVERSATION {" + self.transcript + "}")
             self.transcript += formated_text
             assert len(response) > 0, "LLM ERROR"
             for cmd in response:
@@ -60,7 +60,7 @@ class Situation:
             if index == i: continue
             c = self.characters[i]
             formated_text = "#SPEAKERSAY(" + talking.getName() + "){" + text + "}"
-            response = c.llm.call(formated_text, "#CURRENTCONVERSATION {" + self.transcript + "}")
+            response = c.llm.ask(formated_text, "#CURRENTCONVERSATION {" + self.transcript + "}")
             self.transcript += formated_text
 
             assert len(response) > 0, "LLM ERROR"

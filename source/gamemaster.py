@@ -17,12 +17,12 @@ class Gamemaster:
     def call(self, message, context=None):
         if(None == context):
             context = ""
-        self.__llm.call(message, "#CURRENTTIME{" + self.enviroment.getTime() + "}" + context)
+        return self.__llm.call(message, "#CURRENTTIME{" + self.enviroment.getTime() + "}" + context)
 
     def ask(self, message, context=None):
         if(None == context):
             context = ""
-        self.__llm.ask(message, "#CURRENTTIME{" + self.enviroment.getTime() + "}" + context)
+        return self.__llm.ask(message, "#CURRENTTIME{" + self.enviroment.getTime() + "}" + context)
 
     def sumup(self, conversation):
         self.__llm.sumup(conversation)
