@@ -19,8 +19,14 @@ class Situation:
         return self.end
     
     def leave(self):
-        self.gamemaster.llm.sumup(self.transcript)
-    
+        self.gamemaster.sumup(self.transcript)
+
+        response = self.gamemaster.ask("#NEWOBJECTIVES - answer with #NOTHING or the objective syntax!")
+        assert len(response) > 0, "LLM ERROR"
+        for cmd in response:
+            if(cmd.get("command") == "OBJECTIVE"):
+                self.gamemaster.addObjective(cmd)
+
     def enter(self):
         names = ""
         for c in self.characters:

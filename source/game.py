@@ -9,9 +9,10 @@ class Game:
         self._shouldStop = False
 
         story = Story()
-        self.gamemaster = story.prepareGamemaster()
 
         self.enviroment = story.prepareEnviroment()
+
+        self.gamemaster = story.prepareGamemaster(self.enviroment,)
 
         self.office = Situation("office", self.enviroment, self.gamemaster)
         self.office.transcript = "#INFO{nothing happended}"
@@ -22,7 +23,6 @@ class Game:
         for i in range(REPORTER_COUNT):
             reporter = story.prepareReporter()
             self.reporters.append(reporter)
-
 
         self.situation = self.office
 
@@ -41,11 +41,25 @@ class Game:
         #self.gamemaster.update()
         #TODO prossesGameMasterCommands
 
+        #for o in self.objectives:
+        #    response = self.gamemaster.llm.ask();
+        #    assert len(response) > 0, "LLM ERROR"
+        #        for cmd in response:
+        #            if(cmd.get("command") == "NOTHING"):
+        #                continue
+        #            if(cmd.get("command") == "FORCEEND"):
+        #                
+        #            if(cmd.get("command") == "PROPOSEEND"):
+                        
+
     def shouldStop(self):
         return self._shouldStop
 
     
     def offerSituations(self):
+        if(self.situation != None and self.situation != self.office):
+            self.situation.leave()
+
         while True:
             print("=== Main Menu ===")
             print("1. Speak with hostage-taker")
@@ -56,13 +70,11 @@ class Game:
             choice = input("Enter your choice: ")
 
             if choice == "1":
-                self.situation.leave()
                 self.situation = Situation("speak_hostage_taker", self.enviroment, self.gamemaster)
                 self.situation.addCharacter(self.hostage_taker)
                 self.situation.enter()
                 return
             elif choice == "2":
-                self.situation.leave()
                 self.situation = Situation("pressconference", self.enviroment, self.gamemaster)
                 for r in self.reporters:
                     self.situation.addCharacter(r)

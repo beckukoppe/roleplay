@@ -7,7 +7,7 @@ class LLM:
     SPEAKER_URL = "http://localhost:8081/v1/chat/completions"
 
     STORY_COMMANDS = ["TIME", "NAME", "CHARACTER", "STORY", "GAMEMASTER"]
-    GAMEMASTER_COMMANDS = ["SCENARIO", "SUMMARY"]
+    GAMEMASTER_COMMANDS = ["SCENARIO", "SUMMARY", "OBJECTIVE"]
     SPEAKER_COMMANDS=["NOTHING", "SAY", "FORCEEND", "PROPOSEEND", "SUMMARY"]
 
     def __init__(self, server_url, initial_prompt, commands):
@@ -20,7 +20,7 @@ class LLM:
         temp = self._memory.copy()
 
         if(context):
-            temp.append({"role": "user", "content": "conversation:" + context})
+            temp.append({"role": "user", "content": "context:" + context})
         temp.append({"role": "user", "content": "request:" + message})
         if(reminder):
             temp.append({"role": "user", "content": "REMINDER:" + reminder})
@@ -40,7 +40,7 @@ class LLM:
     def ask(self, message, context=None, failcount=0, reminder=None):
         temp = self._memory.copy()
         if(context):
-            temp.append({"role": "user", "content": "conversation:" + context})
+            temp.append({"role": "user", "content": "context:" + context})
         temp.append({"role": "user", "content": "request:" + message})
         if(reminder):
             temp.append({"role": "user", "content": "REMINDER:" + reminder})     
@@ -71,7 +71,6 @@ class LLM:
         response = self.ask("#SUMMARIZE{" + conversation + "}. Answer with #SUMMARY{content}")
         assert len(response) > 0, "LLM ERROR"
         for cmd in response:
-            print(cmd)
             self._system("#SUMMARY(of a conversation you took place in){" + cmd.get("data", "") + "}")
 
     def _send(self, messages):
@@ -143,6 +142,9 @@ def _parseCommands(text, commands):
 
     if(reminder != ""):
         results = None
+
+    if(results == None):
+        reminder = "You must use one of the specified commands with correct syntax!"
     
     return results, reminder
 
@@ -153,7 +155,9 @@ def _checkCommand(command):
         if(command.get("data", "") == ""):
             return "Syntax of #SAY is '#SAY{...}' where ... must be what you want to say"
 
-    #if(command.get("command") == "FORCEEND"):
+    if(command.get("command") == "OBJECTIVE"):
+        if(command.get("data") == "" or command.get("param") == ""):
+            return "Syntax of #OBJECTIVE is '#OBJECTIVE(time){description}'"
 
     #if(command.get("command") == "PROPOSEEND"):
 
@@ -163,5 +167,4 @@ def _checkCommand(command):
     #if(command.get("command") == "SCENARIO"):
         #return ""
 
-    #unproblematic command
     return ""

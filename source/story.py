@@ -14,7 +14,7 @@ class Story:
     def prepareHostageTaker(self):
         name = self.story_llm.call("Provide the name for the hostage taker as '#NAME{content}'")
         assert len(name) > 0, "LLM ERROR"
-        definition = self.story_llm.call("Generate the character definition for the hostage-taker as '#CHARACTER{content}'")
+        definition = self.story_llm.call("Generate the character definition for the hostage-taker as '#CHARACTER{content}'. brief it so that it knows that it is the hostage taker!")
         assert len(definition) > 0, "LLM ERROR"
         character = Character("hostage_taker.txt", name[0].get("data"), definition[0].get("data"))
         print("hostage-taker...")
@@ -36,9 +36,9 @@ class Story:
         print("enviroment...")
         return enviroment
         
-    def prepareGamemaster(self):
+    def prepareGamemaster(self, enviroment):
         preperation = self.story_llm.call("Generate the preperation for the as '#GAMEMASTER{content}'")
         assert len(preperation) > 0, "LLM ERROR"
-        gamemaster = Gamemaster(preperation[0].get("data"))
+        gamemaster = Gamemaster(preperation[0].get("data"), enviroment)
         print("gamemaster...")
         return gamemaster
