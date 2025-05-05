@@ -31,6 +31,6 @@ class Gamemaster:
         self.__llm.listen(summary)
 
     def addObjective(self, command):
-        command.get("command")
-        command.get("data")
-        command.get("param")
+        print(command.get("command"))
+        print(command.get("data"))
+        print(command.get("param"))

@@ -1,6 +1,9 @@
 import re
 import requests
 
+ASSISTANT = "assistant"
+USER = "user"
+SYSTEM = "system"
 class LLM:
     STORY_URL = "http://localhost:8081/v1/chat/completions"
     GAMEMASTER_URL = "http://localhost:8081/v1/chat/completions"
@@ -20,10 +23,10 @@ class LLM:
         temp = self._memory.copy()
 
         if(context):
-            temp.append({"role": "user", "content": "context:" + context})
-        temp.append({"role": "user", "content": "request:" + message})
+            temp.append({"role": SYSTEM, "content": "context:" + context})
+        temp.append({"role": USER, "content": "request:" + message})
         if(reminder):
-            temp.append({"role": "user", "content": "REMINDER:" + reminder})
+            temp.append({"role": SYSTEM, "content": "REMINDER:" + reminder})
         response = self._send(temp)
         result, newReminder = _parseCommands(response, self._commands)
 
@@ -40,10 +43,10 @@ class LLM:
     def ask(self, message, context=None, failcount=0, reminder=None):
         temp = self._memory.copy()
         if(context):
-            temp.append({"role": "user", "content": "context:" + context})
-        temp.append({"role": "user", "content": "request:" + message})
+            temp.append({"role": SYSTEM, "content": "context:" + context})
+        temp.append({"role": USER, "content": "request:" + message})
         if(reminder):
-            temp.append({"role": "user", "content": "REMINDER:" + reminder})     
+            temp.append({"role": SYSTEM, "content": "REMINDER:" + reminder})     
         response = self._send(temp)
         
         result, newReminder = _parseCommands(response, self._commands)
@@ -62,7 +65,7 @@ class LLM:
         self._system(info)
 
     def memorize(self, conversation):
-        response = self.ask("#SUMMARIZE(include what you feel and think about it and what you may would do if meeting again){" + conversation + "}")
+        response = self.ask("#SUMMARIZE(include what you feel and think about it and what you may would do at the next occasion){" + conversation + "}")
         assert len(response) > 0, "LLM ERROR"
         for cmd in response:
             self._system("#SUMMARY(of a conversation you took place in){" + cmd.get("data", "") + "}")
@@ -90,25 +93,20 @@ class LLM:
         return clean_reply
         
     def _llm(self, content):
-        self._memory.append({"role": "system", "content": content})
+        self._memory.append({"role": ASSISTANT, "content": content})
 
     def _user(self, content):
-        self._memory.append({"role": "user", "content": content})
+        self._memory.append({"role": USER, "content": content})
 
     def _system(self, content):
-        self._memory.append({"role": "info", "content": content})
+        self._memory.append({"role": SYSTEM, "content": content})
 
 def _parseCommands(text, commands):
     """
     Parse commands of the form:
     - #COMMAND{data}
     - #COMMAND
-    - #COMMAND(param)
-    
-    Args:
-        text (str): The input text containing commands.
-        commands (list of str): List of allowed command names.
-
+    - #COMMAND(param)least
     Returns:
         tuple: (success: bool, results: list of dict)
     """
@@ -156,7 +154,7 @@ def _checkCommand(command):
             return "Syntax of #SAY is '#SAY{...}' where ... must be what you want to say"
 
     if(command.get("command") == "OBJECTIVE"):
-        if(command.get("data") == "" or command.get("param") == ""):
+        if (command.get("data") == "") or (command.get("param" == "")):
             return "Syntax of #OBJECTIVE is '#OBJECTIVE(time){description}'"
 
     #if(command.get("command") == "PROPOSEEND"):
@@ -164,7 +162,32 @@ def _checkCommand(command):
     #if(command.get("command") == "SUMMARY"):
         #return ""
 
-    #if(command.get("command") == "SCENARIO"):
-        #return ""
+    if(command.get("command") == "SCENARIO"):
+        if(command.get("data", "") == ""):
+            return "use correct syntax for #SCENARIO!"
 
     return ""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    nothing = [ "#NOTHING", "use when you dont want ..."]
+    say = []
+    kill = []
+
+    llm.call(propt, [nothing, say, kill])
