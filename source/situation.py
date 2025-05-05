@@ -42,7 +42,6 @@ class Situation:
         for i in range(0, len(self.characters)):
             c = self.characters[i]
             response = c.llm.ask(formated_text, "#CURRENTCONVERSATION {" + self.transcript + "}")
-            self.transcript += formated_text
             assert len(response) > 0, "LLM ERROR"
             for cmd in response:
                 if(cmd.get("command") == "FORCEEND"):
@@ -52,16 +51,18 @@ class Situation:
                     print(c.getName() + " has nothing more to say")
                     self.ready.append(c)
 
+        self.transcript += formated_text
+
     def speakersay(self, index, text):
         talking = self.characters[index]
         print(talking.getName() + " says: " + text)
         
+        formated_text = "#SPEAKERSAY(" + talking.getName() + "){" + text + "}"
+
         for i in range(0, len(self.characters)):
             if index == i: continue
             c = self.characters[i]
-            formated_text = "#SPEAKERSAY(" + talking.getName() + "){" + text + "}"
             response = c.llm.ask(formated_text, "#CURRENTCONVERSATION {" + self.transcript + "}")
-            self.transcript += formated_text
 
             assert len(response) > 0, "LLM ERROR"
             for cmd in response:
@@ -73,6 +74,8 @@ class Situation:
                     self.ready.append(c)
                 else:
                     i += 1
+
+        self.transcript += formated_text
 
     def update(self):
         while len(self.leaving) > 0:
