@@ -96,7 +96,7 @@ class LLM:
         self._memory.append({"role": "user", "content": content})
 
     def _system(self, content):
-        self._memory.append({"role": "user", "content": content})
+        self._memory.append({"role": "system", "content": content})
 
 def _parseCommands(text, commands):
     """
@@ -145,6 +145,9 @@ def _parseCommands(text, commands):
 
     if(results == None):
         reminder = "You must use one of the specified commands with correct syntax!"
+
+    #TODO
+    print(results)
     
     return results, reminder
 

@@ -22,6 +22,7 @@ class Situation:
         self.gamemaster.sumup(self.transcript)
 
         response = self.gamemaster.ask("#NEWOBJECTIVES - answer with #NOTHING or the objective syntax!")
+        print(response)
         assert len(response) > 0, "LLM ERROR"
         for cmd in response:
             if(cmd.get("command") == "OBJECTIVE"):
@@ -56,7 +57,7 @@ class Situation:
         print(talking.getName() + " says: " + text)
         
         for i in range(0, len(self.characters)):
-            #if index == i: continue
+            if index == i: continue
             c = self.characters[i]
             formated_text = "#SPEAKERSAY(" + talking.getName() + "){" + text + "}"
             response = c.llm.call(formated_text, "#CURRENTCONVERSATION {" + self.transcript + "}")
