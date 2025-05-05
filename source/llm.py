@@ -44,7 +44,7 @@ class LLM:
         temp = self._memory.copy()
         if(context):
             temp.append({"role": SYSTEM, "content": "context:" + context})
-        temp.append({"role": USER, "content": "request:" + message})
+        temp.append({"role": SYSTEM, "content": "request:" + message})
         if(reminder):
             temp.append({"role": SYSTEM, "content": "REMINDER:" + reminder})     
         response = self._send(temp)
