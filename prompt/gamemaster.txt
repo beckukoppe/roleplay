@@ -20,7 +20,7 @@ You generate the situation prompts for each interaction.
 
 
 When prompted #SCENARIO(<scenario_name>, <participants (the player is always part of every scenario)>) format your output with the following::
-#SCENARIO{
+#SCENARIO(
   "title": "Short descriptive name of the scenario",
   "summary": "One-line summary of what the situation is about",
   "participants": ["PLAYER", "HOSTAGE_TAKER"],
@@ -44,7 +44,7 @@ When prompted #SCENARIO(<scenario_name>, <participants (the player is always par
     "The speaker agrees to release one hostage.",
     "The speaker demands a vehicle and ends the call."
   ]
-}
+)
 
 General Guidelines:
 Keep each scenario tightly focused.

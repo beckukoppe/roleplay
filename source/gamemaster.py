@@ -23,15 +23,12 @@ class Gamemaster:
     def ask(self, message, context=None):
         if(None == context):
             context = ""
-        return self.__llm.ask(message, "#CURRENTTIME{" + self.enviroment.getTime() + "}" + context)
+        return self.__llm.sysask(message, "#CURRENTTIME{" + self.enviroment.getTime() + "}" + context)
 
-    def sumup(self, conversation):
-        self.__llm.sumup(conversation)
-
-    def update(self, summary):
-        self.__llm.listen(summary)
+    def summarize(self, conversation):
+        self.__llm.sysask([CMD.SUMMARY,], "summarize the following conversation. think about what that means for the story: " + conversation)
 
     def addObjective(self, command):
         print(command.get("command"))
-        print(command.get("data"))
-        print(command.get("param"))
+        print(command.get("arg0"))
+        print(command.get("arg1"))

@@ -117,7 +117,11 @@ def _parseCommands(text, allowed):
 
     matches = list(re.finditer(pattern, text))
     if not matches:
-        return None, "Use one of the specified commands in correct syntax: #COMMAND or #COMMAND(x; y; ...)" #TODO
+        str = ""
+        for elem in allowed:
+            str += __formatCommand(elem) + ", "
+
+        return None,"To answer use one of the following commands with correct syntax: " + str
 
     results = []
     for match in matches:
@@ -135,9 +139,6 @@ def _parseCommands(text, allowed):
     reminder = ""
     for cmd in results:
         reminder += __checkCommand(cmd, allowed)
-
-    if reminder:
-        return None, "You must use one of the specified commands with correct syntax!\n" + reminder
 
     return results, ""
 
@@ -160,7 +161,7 @@ def __formatCommand(cmd: list) -> str:
 
 def __checkCommand(cmd: dict, allowed_cmds: list) -> str:
     if "command" not in cmd:
-        return "Fehler: 'command'-Feld fehlt."
+        return "Error: field 'command' is missing."
 
     name = cmd["command"]
     given_args = [v for k, v in sorted(cmd.items()) if k.startswith("arg")]
@@ -169,13 +170,13 @@ def __checkCommand(cmd: dict, allowed_cmds: list) -> str:
     matched = [entry for entry in allowed_cmds if entry[0] == name]
     if not matched:
         allowed_names = ", ".join(entry[0] for entry in allowed_cmds)
-        return f"Unbekannter Befehl '{name}'. Erlaubt sind: {allowed_names}"
+        return f"Unknown command '{name}'. Allowed are: {allowed_names}"
 
     # Erwartete Argumente vergleichen
     expected = matched[0][1:]
     if len(given_args) != len(expected):
         correct_syntax = __formatCommand([name] + expected)
-        return f"Fehlerhafte Nutzung von #{name}. Erwartete Syntax: {correct_syntax}"
+        return f"Wrong usage of #{name}. Expected syntax: {correct_syntax}"
 
     return ""
 
@@ -188,4 +189,4 @@ def _formatCommandHint(allowed_cmds: list) -> str:
     for elem in allowed_cmds:
         str += __formatCommand(elem) + ", "
 
-    return "Nutze einen der folgenden Kommandos, um zu antworten: " + str
+    return "To answer use one of the following commands with correct syntax: " + str

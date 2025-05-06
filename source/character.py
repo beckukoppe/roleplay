@@ -7,6 +7,7 @@ class Character:
         self.llm = LLM(LLM.SPEAKER_URL, util.readFile("prompt/speaker_llm.txt"))
         self.llm.syslisten(util.readFile("prompt/" + prompt_name))
         self.name = name
+        self.llm.syslisten("your name is " + self.name + ". In conversations keep beeing you!")
 
     def getName(self):
         return self.name

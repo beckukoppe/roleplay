@@ -16,16 +16,16 @@ class Situation:
         self.characters.append(character)
 
     def __info(self, who, info):
-        self.__brodcast("#INFO{" + who + " " + info + "}")
+        self.__brodcast("#INFO(" + who + " " + info + ")")
 
     def __scenario(self, text):
-        self.__brodcast("#SCENARIO{" + text + "}")
+        self.__brodcast("#SCENARIO(" + text + ")")
 
     def __usay(self, text):
-        self.__brodcast("#USERSAY{" + text + "}")
+        self.__brodcast("#USERSAY(" + text + ")")
 
     def __ssay(self, name, text):
-        self.__brodcast("#SAY(" + name + "){" + text + "}")
+        self.__brodcast("#SAY(" + name + ", " + text + ")")
 
     def __brodcast(self, message):
          self.transcript += message
@@ -39,9 +39,9 @@ class Situation:
         return self.end
     
     def leave(self):
-        #self.gamemaster.sumup(self.transcript)
+        self.gamemaster.summarize(self.transcript)
 
-        response = self.gamemaster.sysask([CMD.NOTHING, CMD.OBJECTIVE], "#NEWOBJECTIVES - answer with #NOTHING or the objective syntax!")
+        response = self.gamemaster.ask([CMD.NOTHING, CMD.OBJECTIVE], "#NEWOBJECTIVES - answer with #NOTHING or the objective syntax!")
         print(response)
         assert len(response) > 0, "LLM ERROR"
         for cmd in response:
@@ -63,9 +63,11 @@ class Situation:
             c = self.characters[i]
             c.llm.userlisten(text)
 
-            response = c.llm.sysask([CMD.NOTHING, CMD.FORCEEND, CMD.PROPOSEEND], "wanno do something?") #TODO
+            response = c.llm.sysask([CMD.NOTHING, CMD.FORCEEND, CMD.PROPOSEEND, CMD.SAY], "Do you want to perform an action?") #TODO
             assert len(response) > 0, "LLM ERROR"
             for cmd in response:
+                if(cmd.get("command") == "SAY"):
+                    self.__speakersay(i, cmd.get("arg0"))
                 if(cmd.get("command") == "FORCEEND"):
                     self.__info(c.getName(), "left the conversation")
                     self.leaving.append(c)
@@ -81,8 +83,8 @@ class Situation:
             if index == i: continue
             c = self.characters[i]
 
-            c.syslisten("#SAY(" + talking.getName() + "){" + text + "}")
-            response = c.llm.sysask([CMD.NOTHING, CMD.FORCEEND, CMD.PROPOSEEND], "wanno do something?") #TODO
+            #c.syslisten("#SAY(" + talking.getName() + ", " + text + ")")
+            response = c.llm.sysask([CMD.NOTHING, CMD.FORCEEND, CMD.PROPOSEEND], "Do you want to perform an action?") #TODO
             assert len(response) > 0, "LLM ERROR"
             for cmd in response:
                 if(cmd.get("command") == "FORCEEND"):
