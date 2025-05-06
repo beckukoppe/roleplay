@@ -16,4 +16,10 @@ def debug_chat(chat):
         print(e)
         print("\n")
     print("***\n")
+
+def formatted_history(history):
+    o = ""
+    for e in history:
+        o += str(e) + "\n"
+    return o
     
