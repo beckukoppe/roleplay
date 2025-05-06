@@ -25,6 +25,7 @@ class Situation:
         self.__brodcast("#USERSAY(" + text + ")")
 
     def __ssay(self, name, text):
+        name = ""
         self.__brodcast("#SAY(" + name + ", " + text + ")")
 
     def __brodcast(self, message):
