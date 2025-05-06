@@ -9,3 +9,11 @@ def try_remove(list, item):
         list.remove(item)
     except ValueError:
         pass 
+
+def debug_chat(chat):
+    print("***debug***\n")
+    for e in chat:
+        print(e)
+        print("\n")
+    print("***\n")
+    
