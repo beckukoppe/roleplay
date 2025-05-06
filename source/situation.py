@@ -162,7 +162,7 @@ class Situation:
             someone = False
             for cmd in response:
                 if(cmd.get("command") == "SAY"):
-                    self.__speakersay(i, cmd.get("data"))
+                    self.__speakersay(i, cmd.get("arg0"))
                     someone = True
                 if(cmd.get("command") == "FORCEEND"):
                     print(c.getName() + " left the conversation")

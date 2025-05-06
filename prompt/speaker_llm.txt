@@ -19,7 +19,7 @@ When you receive a '#SPEAKERSAY(name){content}' or a '#USERSAY{content}' or a '#
 
 When you receive a #YOURTURN you can respond with one of the following commands:
 - When you want to give an answer:
-'#SAY{apropiate answer in your given role}'
+'#SAY(apropiate answer in your given role)'
 
 - When you want to cancel the conversation forcefully:
 '#FORCEEND'
