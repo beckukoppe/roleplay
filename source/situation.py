@@ -1,5 +1,5 @@
 import util as util
-
+from llm import CMD
 class Situation:
     def __init__(self, name, enviroment, gamemaster):
         self.name = name
@@ -15,13 +15,33 @@ class Situation:
     def addCharacter(self, character):
         self.characters.append(character)
 
+    def __info(self, who, info):
+        self.__brodcast("#INFO{" + who + " " + info + "}")
+
+    def __scenario(self, text):
+        self.__brodcast("#SCENARIO{" + text + "}")
+
+    def __usay(self, text):
+        self.__brodcast("#USERSAY{" + text + "}")
+
+    def __ssay(self, name, text):
+        self.__brodcast("#SAY(" + name + "){" + text + "}")
+
+    def __brodcast(self, message):
+         self.transcript += message
+         print(message)
+
+         for i in range(0, len(self.characters)):
+            c = self.characters[i]
+            c.llm.syslisten(message)
+
     def isEnd(self):
         return self.end
     
     def leave(self):
-        self.gamemaster.sumup(self.transcript)
+        #self.gamemaster.sumup(self.transcript)
 
-        response = self.gamemaster.ask("#NEWOBJECTIVES - answer with #NOTHING or the objective syntax!")
+        response = self.gamemaster.sysask([CMD.NOTHING, CMD.OBJECTIVE], "#NEWOBJECTIVES - answer with #NOTHING or the objective syntax!")
         print(response)
         assert len(response) > 0, "LLM ERROR"
         for cmd in response:
@@ -33,58 +53,54 @@ class Situation:
         for c in self.characters:
             names += c.getName() + ","
 
-        #count = "#COUNT(" + str(len(self.characters) + len(self.ready) + 1) + ")"
-        #self.transcript += "#INFO{conversation with "  + count + " participants: " + names + "}"
         scenario = self.gamemaster.getScenario(self.name, names)
-        self.transcript += "\n#SCENARIO{" + scenario + "}"
+        self.__scenario(scenario)
 
-    def usersay(self, formated_text):
+    def __usersay(self, text):
+        self.__usay(text)
+
         for i in range(0, len(self.characters)):
             c = self.characters[i]
-            response = c.llm.ask(formated_text, "(you are not allowed to say something. end, propose or nothing!) #CURRENTCONVERSATION {" + self.transcript + "}")
+            c.llm.userlisten(text)
+
+            response = c.llm.sysask([CMD.NOTHING, CMD.FORCEEND, CMD.PROPOSEEND], "wanno do something?") #TODO
             assert len(response) > 0, "LLM ERROR"
             for cmd in response:
                 if(cmd.get("command") == "FORCEEND"):
-                    print(c.getName() + " left the conversation")
-                    self.transcript += c.getName() + " left the conversation"
+                    self.__info(c.getName(), "left the conversation")
                     self.leaving.append(c)
                 if(cmd.get("command") == "PROPOSEEND"):
-                    print(c.getName() + " has nothing more to say")
-                    self.transcript += c.getName() + " has nothing more to say"
+                    self.__info(c.getName(), "has nothing more to say")
                     self.ready.append(c)
 
-        self.transcript += formated_text
-
-    def speakersay(self, index, text):
+    def __speakersay(self, index, text):
         talking = self.characters[index]
-        print(talking.getName() + " says: " + text)
-        
-        formated_text = "#SPEAKERSAY(" + talking.getName() + "){" + text + "}"
+        self.__ssay(talking.getName(), text)
 
         for i in range(0, len(self.characters)):
             if index == i: continue
             c = self.characters[i]
-            response = c.llm.ask(formated_text, "(you are not allowed to say something. end, propose or nothing!) #CURRENTCONVERSATION {" + self.transcript + "}")
 
+            c.syslisten("#SAY(" + talking.getName() + "){" + text + "}")
+            response = c.llm.sysask([CMD.NOTHING, CMD.FORCEEND, CMD.PROPOSEEND], "wanno do something?") #TODO
             assert len(response) > 0, "LLM ERROR"
             for cmd in response:
                 if(cmd.get("command") == "FORCEEND"):
-                    print(c.getName() + " left the conversation")
-                    self.transcript += c.getName() + " left the conversation"
+                    self.__info(c.getName(), "left the conversation")
                     self.leaving.append(c)
                 elif(cmd.get("command") == "PROPOSEEND"):
-                    print(c.getName() + " has nothing more to say")
-                    self.transcript += c.getName() + " has nothing more to say"
+                    self.__info(c.getName(), "has nothing more to say")
                     self.ready.append(c)
                 else:
                     i += 1
 
-        self.transcript += formated_text
-
     def update(self):
+        if(self.end == True):
+            return
+
         while len(self.leaving) > 0:
             c = self.leaving[0]
-            c.llm.memorize(self.transcript)
+            #c.llm.memorize(self.transcript)
             util.try_remove(self.characters, c)
             self.leaving.remove(c)
 
@@ -123,28 +139,30 @@ class Situation:
         print("Do you want to end this conversation? [Y/n]")
         choice = input("Enter your choice: ")
         if choice == "n":
-            return Falseleast
+            return False
         else:
             return True
 
     def _userSaySomething(self):
-        user_input = input("Say: ")
-        if(user_input.startswith("#")):
-            self.usersay(user_input)
+        user_input = input("(#END/#NOMORE) Say: ")
+        if(user_input.startswith("#END")):
+            self.__info("USER", "left conversation")
+            self.end = True
+        elif(user_input.startswith("#NOMORE")):
+            self.__info("USER", "has nothing more to say")
         else:
-            self.usersay("#USERSAY{" + user_input + "}")
+            self.__usersay(user_input)
 
     def _speakerSaySomething(self):
         i = 0
         while i < len(self.characters): 
             c = self.characters[i]
-            response = c.llm.ask("#YOURTURN(do you want to perform an action (maybe say something, or leave)? if not #NOTHING)", "#CURRENTCONVERSATION {" + self.transcript + "}")
+            response = c.llm.sysask([CMD.NOTHING, CMD.FORCEEND, CMD.PROPOSEEND, CMD.SAY], "#YOURTURN(do you want to perform an action (maybe say something, or leave)? if not #NOTHING)")
             assert len(response) > 0, "LLM ERROR"
             someone = False
             for cmd in response:
                 if(cmd.get("command") == "SAY"):
-                    print(cmd)
-                    self.speakersay(i, cmd.get("data"))
+                    self.__speakersay(i, cmd.get("data"))
                     someone = True
                 if(cmd.get("command") == "FORCEEND"):
                     print(c.getName() + " left the conversation")

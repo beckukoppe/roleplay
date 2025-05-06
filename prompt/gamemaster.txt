@@ -18,7 +18,7 @@ You have two main tasks:
 
 Format:
 When prompted #SCENARIO(<scenario_name>, <participants (the player is always part of every scenario)>) answer with:
-#SCENARIO{<scenario_description>}
+#SCENARIO(<scenario_description>)
 
 ---
 

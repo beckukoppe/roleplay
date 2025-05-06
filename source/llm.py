@@ -4,79 +4,91 @@ import requests
 ASSISTANT = "assistant"
 USER = "user"
 SYSTEM = "system"
+
+class CMD:
+    NOTHING = [ "NOTHING", ]
+    PROPOSEEND = [ "PROPOSEEND", ]
+    FORCEEND = [ "FORCEEND", ]
+
+    SAY = [ "SAY", "message" ]
+    SUMMARY = [ "SUMMARY", "summarized text" ]
+    SCENARIO = [ "SCENARIO", "scenario description text" ]
+
+    OBJECTIVE = [ "OBJECTIVE", "name", "description", "time at which it becomes invalid" ]
 class LLM:
     STORY_URL = "http://localhost:8081/v1/chat/completions"
     GAMEMASTER_URL = "http://localhost:8081/v1/chat/completions"
     SPEAKER_URL = "http://localhost:8081/v1/chat/completions"
 
-    STORY_COMMANDS = ["TIME", "NAME", "CHARACTER", "STORY", "GAMEMASTER"]
-    GAMEMASTER_COMMANDS = ["NOTHING", "SCENARIO", "SUMMARY", "OBJECTIVE"]
-    SPEAKER_COMMANDS=["NOTHING", "SAY", "FORCEEND", "PROPOSEEND", "SUMMARY"]
-
-    def __init__(self, server_url, initial_prompt, commands):
+    def __init__(self, server_url, initial_prompt):
         self._server_url = server_url
         self._memory = []
-        self._system(initial_prompt)
-        self._commands = commands
+        self.syslisten(initial_prompt)
 
-    def call(self, message, context=None, failcount=0, reminder=None):
+    def __call(self, who, allowed, message, extra, failcount, reminder):
         temp = self._memory.copy()
 
-        if(context):
-            temp.append({"role": SYSTEM, "content": "context:" + context})
-        temp.append({"role": USER, "content": "request:" + message})
+        if(extra != None):
+            temp.append({"role": "system", "content": extra})
+
+        temp.append({"role": "system", "content": _formatCommandHint(allowed)})
+
+        temp.append({"role": who, "content": message})
+        self._memory.append({"role": who, "content": message})
+
         if(reminder):
-            temp.append({"role": SYSTEM, "content": "REMINDER:" + reminder})
-        response = self._send(temp)
-        result, newReminder = _parseCommands(response, self._commands)
+            temp.append({"role": SYSTEM, "content": "[REMINDER]" + reminder})
+
+        response = self.__send(temp)
+        result, newReminder = _parseCommands(response, allowed)
 
         if(result):
-            self._user(message)
-            self._llm(response)
+            self._memory.append({"role": "assistant", "content": response})
             return result
         else:
-            print("LLM FAILED TO FOLLOW ORDERS: #" + str(failcount))
-            print(response + "\n")
-            return self.call(message, context, failcount + 1, newReminder)
-
-    
-    def ask(self, message, context=None, failcount=0, reminder=None):
-        temp = self._memory.copy()
-        if(context):
-            temp.append({"role": SYSTEM, "content": "context:" + context})
-        temp.append({"role": SYSTEM, "content": "request:" + message})
-        if(reminder):
-            temp.append({"role": SYSTEM, "content": "REMINDER:" + reminder})     
-        response = self._send(temp)
+            print("LLM FAILED #" + str(failcount))
+            print("SAID:" + response + "\n" + "REMINDER:" + newReminder + "\n")
+            return self.__call(who, allowed, message, extra, failcount + 1, newReminder)
         
-        result, newReminder = _parseCommands(response, self._commands)
+    def usercall(self, allowed, message="", extra=None, failcount=0, reminder=None):
+        return self.__call("user", allowed, message, extra, failcount, reminder)
+    
+    def syscall(self, allowed, message="", extra=None, failcount=0, reminder=None):
+        return self.__call("system", allowed, message, extra, failcount, reminder)
+
+    def sysask(self, allowed, message="", extra=None, failcount=0, reminder=None):
+        temp = self._memory.copy()
+
+        if(extra):
+            temp.append({"role": "system", "content": extra})
+
+        temp.append({"role": "system", "content": _formatCommandHint(allowed)})
+
+        temp.append({"role": "system", "content": message})
+
+        if(reminder):
+            temp.append({"role": SYSTEM, "content": "[REMINDER]" + reminder})
+
+        response = self.__send(temp)
+        result, newReminder = _parseCommands(response, allowed)
 
         if(result):
             return result
         else:
-            print("LLM FAILED TO FOLLOW ORDERS: #" + str(failcount))
-            print(response + "\n")
-            return self.ask(message, context, failcount + 1, newReminder)
+            print("LLM FAILED #" + str(failcount))
+            print("SAID:" + response + "\n" + "REMINDER:" + newReminder + "\n")
+            return self.sysask(allowed, message, extra, failcount + 1, newReminder)
     
-    def listen(self, message):
-        self._user(message)
-    
-    def briefing(self, info):
-        self._system(info)
+    def __listen(self, who, message):
+        self._memory.append({"role": who, "content": message})
 
-    def memorize(self, conversation):
-        response = self.ask("#SUMMARIZE(include what you feel and think about it and what you may would do at the next occasion){" + conversation + "}")
-        assert len(response) > 0, "LLM ERROR"
-        for cmd in response:
-            self._system("#SUMMARY(of a conversation you took place in){" + cmd.get("data", "") + "}")
+    def userlisten(self, message):
+        self.__listen("user", message)
 
-    def sumup(self, conversation):
-        response = self.ask("#SUMMARIZE{" + conversation + "}. Answer with #SUMMARY{content}")
-        assert len(response) > 0, "LLM ERROR"
-        for cmd in response:
-            self._system("#SUMMARY(of a conversation you took place in){" + cmd.get("data", "") + "}")
+    def syslisten(self, message):
+        self.__listen("system", message)
 
-    def _send(self, messages):
+    def __send(self, messages):
         response = requests.post(self._server_url, json={
                 #"model": MODEL_NAME,
                 "messages": messages,
@@ -91,103 +103,89 @@ class LLM:
 
         clean_reply = reply.replace("\n", " ").replace("\r", "")
         return clean_reply
-        
-    def _llm(self, content):
-        self._memory.append({"role": ASSISTANT, "content": content})
 
-    def _user(self, content):
-        self._memory.append({"role": USER, "content": content})
+def _parseCommands(text, allowed):
+    if not allowed or not isinstance(allowed[0], list):
+        raise TypeError(f"Expected a list for allowed command")
 
-    def _system(self, content):
-        self._memory.append({"role": SYSTEM, "content": content})
+    # Erlaubte Kommandonamen extrahieren
+    command_names = [cmd[0] for cmd in allowed]
 
-def _parseCommands(text, commands):
-    """
-    Parse commands of the form:
-    - #COMMAND{data}
-    - #COMMAND
-    - #COMMAND(param)least
-    Returns:
-        tuple: (success: bool, results: list of dict)
-    """
-
-    # Erlaubte Kommandos absichern
-    command_pattern = '|'.join(re.escape(cmd) for cmd in commands)
-    
-    # Regex: fängt COMMAND, optional {data} oder (param)
-    pattern = rf'#({command_pattern})(?:\{{([^}}]*)\}}|\(([^)]*)\))?'
+    # Regex pattern bilden
+    command_pattern = '|'.join(re.escape(cmd) for cmd in command_names)
+    pattern = rf'#({command_pattern})(?:\(([^)]*)\))?'
 
     matches = list(re.finditer(pattern, text))
-
     if not matches:
-        return [], "use one of the specified commands with correct syntax!"
+        return None, "Use one of the specified commands in correct syntax: #COMMAND or #COMMAND(x; y; ...)" #TODO
 
     results = []
     for match in matches:
-        command, data, param = match.groups()
+        command, param = match.groups()
         ans = {'command': command}
-        
-        if data is not None:
-            ans['data'] = data
-        elif param is not None:
-            ans['param'] = param
-        
+
+        if param is not None:
+            args = [p.strip() for p in param.split(';')] if param.strip() else []
+            for i, arg in enumerate(args):
+                ans[f'arg{i}'] = arg
+
         results.append(ans)
 
+    # Fehlerprüfung
     reminder = ""
     for cmd in results:
-        reminder += _checkCommand(cmd)
+        reminder += __checkCommand(cmd, allowed)
 
-    if(reminder != ""):
-        results = None
+    if reminder:
+        return None, "You must use one of the specified commands with correct syntax!\n" + reminder
 
-    if(results == None):
-        reminder = "You must use one of the specified commands with correct syntax!"
-    
-    return results, reminder
+    return results, ""
 
-def _checkCommand(command):
-    #if(command.get("command") == "NOTHING"):
-    
-    if(command.get("command") == "SAY"):
-        if(command.get("data", "") == ""):
-            return "Syntax of #SAY is '#SAY{...}' where ... must be what you want to say"
 
-    if(command.get("command") == "OBJECTIVE"):
-        if (command.get("data") == "") or (command.get("param" == "")):
-            return "Syntax of #OBJECTIVE is '#OBJECTIVE(time){description}'"
+def __formatCommand(cmd: list) -> str:
+    if not cmd:
+        raise ValueError("Command list is empty")
 
-    #if(command.get("command") == "PROPOSEEND"):
+    command_name = cmd[0]
+    args = cmd[1:]
 
-    #if(command.get("command") == "SUMMARY"):
-        #return ""
+    if not isinstance(command_name, str):
+        raise TypeError("Command name must be a string")
 
-    if(command.get("command") == "SCENARIO"):
-        if(command.get("data", "") == ""):
-            return "use correct syntax for #SCENARIO!"
+    if not args:
+        return f"#{command_name}"
+    else:
+        joined_args = ", ".join(f"<{arg}>" for arg in args)
+        return f"#{command_name}({joined_args})"
+
+def __checkCommand(cmd: dict, allowed_cmds: list) -> str:
+    if "command" not in cmd:
+        return "Fehler: 'command'-Feld fehlt."
+
+    name = cmd["command"]
+    given_args = [v for k, v in sorted(cmd.items()) if k.startswith("arg")]
+
+    # Suche erlaubten Befehl in erlaubten Kommandos
+    matched = [entry for entry in allowed_cmds if entry[0] == name]
+    if not matched:
+        allowed_names = ", ".join(entry[0] for entry in allowed_cmds)
+        return f"Unbekannter Befehl '{name}'. Erlaubt sind: {allowed_names}"
+
+    # Erwartete Argumente vergleichen
+    expected = matched[0][1:]
+    if len(given_args) != len(expected):
+        correct_syntax = __formatCommand([name] + expected)
+        return f"Fehlerhafte Nutzung von #{name}. Erwartete Syntax: {correct_syntax}"
 
     return ""
 
+def _formatCommandHint(allowed_cmds: list) -> str:
 
+    if not allowed_cmds:
+        raise ValueError("Command list is empty")
+    
+    str = ""
+    for elem in allowed_cmds:
+        str += __formatCommand(elem) + ", "
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    nothing = [ "#NOTHING", "use when you dont want ..."]
-    say = []
-    kill = []
-
-    llm.call(propt, [nothing, say, kill])
+    return "Nutze einen der folgenden Kommandos, um zu antworten: " + str

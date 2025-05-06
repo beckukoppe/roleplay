@@ -7,38 +7,38 @@ from llm import LLM
 
 class Story:
     def __init__(self):
-        self.story_llm = LLM(LLM.STORY_URL, util.readFile("prompt/story_llm.txt"), LLM.STORY_COMMANDS)
-        self.story = self.story_llm.call("Generate the story (brief) as '#STORY{content}'")
+        self.story_llm = LLM(LLM.STORY_URL, util.readFile("prompt/story_llm.txt"))
+        self.story = self.story_llm.syscall([["STORY", "content text"],], "Generate the story (brief)", )
         print("story...")
         
     def prepareHostageTaker(self):
-        name = self.story_llm.call("Provide the name for the hostage taker as '#NAME{content}'")
+        name = self.story_llm.syscall([["NAME", "first_name seccond_name"],], "Provide the name for the hostage taker")
         assert len(name) > 0, "LLM ERROR"
-        definition = self.story_llm.call("Generate the character definition for the hostage-taker as '#CHARACTER{content}'. brief it so that it knows that it is the hostage taker!")
+        definition = self.story_llm.syscall([["CHARACTER", "description text"],], "Generate the character definition for the hostage-taker. brief it so that it knows that it is the hostage taker!")
         assert len(definition) > 0, "LLM ERROR"
-        character = Character("hostage_taker.txt", name[0].get("data"), definition[0].get("data"))
+        character = Character("hostage_taker.txt", name[0].get("arg0"), definition[0].get("arg0"))
         print("hostage-taker...")
         return character
     
     def prepareReporter(self):
-        name = self.story_llm.call("Provide the name for only the next Reporter as '#NAME{content}'. No more no less!")
+        name = self.story_llm.syscall([["NAME", "first_name seccond_name"],], "Provide the name for only the next Reporter")
         assert len(name) > 0, "LLM ERROR"
-        definition = self.story_llm.call("Generate the character definition for the reporter as '#CHARACTER{content}'")
+        definition = self.story_llm.syscall([["CHARACTER", "description text"],], "Generate the character definition for the reporter")
         assert len(definition) > 0, "LLM ERROR"
-        character = Character("reporter.txt", name[0].get("data"), definition[0].get("data"))
+        character = Character("reporter.txt", name[0].get("arg0"), definition[0].get("arg0"))
         print("reporter...")
         return character
     
     def prepareEnviroment(self):
-        time = self.story_llm.call("Give the start time in 24-hour format as '#TIME{HH:MM}'")
+        time = self.story_llm.syscall([["TIME", "HH:MM"],], "Give the start time in 24-hour format")
         assert len(time) > 0, "LLM ERROR"
-        enviroment = Environment(time[0].get("data"))
+        enviroment = Environment(time[0].get("arg0"))
         print("enviroment...")
         return enviroment
         
     def prepareGamemaster(self, enviroment):
-        preperation = self.story_llm.call("Generate the preperation for the as '#GAMEMASTER{content}'")
+        preperation = self.story_llm.syscall([["GAMEMASTER", "content text"],], "Generate the preperation for the gamemaster llm. tell it your story plans. it will oversee the actor actions")
         assert len(preperation) > 0, "LLM ERROR"
-        gamemaster = Gamemaster(preperation[0].get("data"), enviroment)
+        gamemaster = Gamemaster(preperation[0].get("arg0"), enviroment)
         print("gamemaster...")
         return gamemaster
