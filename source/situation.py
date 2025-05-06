@@ -1,5 +1,6 @@
 import util as util
 from llm import CMD
+
 class Situation:
     def __init__(self, name, enviroment, gamemaster):
         self.name = name
@@ -16,19 +17,34 @@ class Situation:
         self.characters.append(character)
 
     def __info(self, who, info):
-        self.__brodcast("#INFO(" + who + " " + info + ")")
+        self.__sysbrodcast("#INFO(" + who + " " + info + ")")
 
     def __scenario(self, text):
-        self.__brodcast("#SCENARIO(" + text + ")")
+        self.__sysbrodcast("#SCENARIO(" + text + ")")
 
     def __usay(self, text):
-        self.__brodcast("#USERSAY(" + text + ")")
+        self.__userbrodcast("#USERSAY(" + text + ")")
 
-    def __ssay(self, name, text):
-        name = ""
-        self.__brodcast("#SAY(" + name + ", " + text + ")")
+    def __ssay(self, index, name, text):
+        message =  "#SAY(" + name + "; " + text + ")"
+        self.transcript += message
+        speaker = self.characters[index]
+        speaker.llm.llmlisten("#YOU(" + name + "; " + text + ")")
+        print(message)
+        for i in range(0, len(self.characters)):
+            if (i == index): continue
+            c = self.characters[i]
+            c.llm.syslisten(message)
 
-    def __brodcast(self, message):
+    def __userbrodcast(self, message):
+         self.transcript += message
+         print(message)
+
+         for i in range(0, len(self.characters)):
+            c = self.characters[i]
+            c.llm.userlisten(message)
+
+    def __sysbrodcast(self, message):
          self.transcript += message
          print(message)
 
@@ -62,7 +78,6 @@ class Situation:
 
         for i in range(0, len(self.characters)):
             c = self.characters[i]
-            c.llm.userlisten(text)
 
             response = c.llm.sysask([CMD.NOTHING, CMD.FORCEEND, CMD.PROPOSEEND, CMD.SAY], "Do you want to perform an action?") #TODO
             assert len(response) > 0, "LLM ERROR"
@@ -78,7 +93,7 @@ class Situation:
 
     def __speakersay(self, index, text):
         talking = self.characters[index]
-        self.__ssay(talking.getName(), text)
+        self.__ssay(index, talking.getName(), text)
 
         for i in range(0, len(self.characters)):
             if index == i: continue

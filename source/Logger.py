@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+import util
 
 class Logger:
     def __init__(self, name):
@@ -18,10 +19,10 @@ class Logger:
     def log_call(self, history):
         timestamp = self._get_timestamp()
         filename = f"{self.name}_call_{timestamp}.txt"
-        self._write_log(filename, history)
+        self._write_log(filename, util.formatted_history(history))
 
     def log_ask(self, history, ask):
         timestamp = self._get_timestamp()
         filename = f"{self.name}_ask_{timestamp}.txt"
-        content = f"{history}\n\nASK:\n{ask}"
+        content = f"{util.formatted_history(history)}\n\nASK:\n{ask}"
         self._write_log(filename, content)

@@ -47,7 +47,7 @@ class LLM:
             self._memory.append({"role": "assistant", "content": response})
 
             if self.logger != None:
-                self.logger.log_call(self._memory)
+                self.logger.log_call(temp)
             return result
         else:
             print("LLM FAILED #" + str(failcount))
@@ -78,7 +78,7 @@ class LLM:
 
         if(result):
             if self.logger != None:
-                self.logger.log_ask(self._memory, response)
+                self.logger.log_ask(temp, response)
             return result
         else:
             print("LLM FAILED #" + str(failcount))
@@ -93,6 +93,9 @@ class LLM:
 
     def syslisten(self, message):
         self.__listen("system", message)
+
+    def llmlisten(self, message):
+        self.__listen("assistant", message)
 
     def __send(self, messages):
         response = requests.post(self._server_url, json={
