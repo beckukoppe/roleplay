@@ -2,10 +2,11 @@ import util as util
 
 from llm import LLM
 from llm import CMD
+from Logger import Logger
 
 class Gamemaster:
     def __init__(self, preperation, enviroment):
-        self.__llm = LLM(LLM.GAMEMASTER_URL, util.readFile("prompt/gamemaster.txt"))
+        self.__llm = LLM(LLM.GAMEMASTER_URL, util.readFile("prompt/gamemaster.txt"), Logger("Gamemaster"))
         self.__llm.syslisten(preperation)
         self.enviroment = enviroment
         self.objectives = []

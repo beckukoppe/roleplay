@@ -4,6 +4,8 @@ from enviroment import Environment
 from character import Character
 from gamemaster import Gamemaster
 from llm import LLM
+from Logger import Logger
+
 
 class Story:
     def __init__(self):
@@ -16,7 +18,7 @@ class Story:
         assert len(name) > 0, "LLM ERROR"
         definition = self.story_llm.syscall([["CHARACTER", "description text"],], "Generate the character definition for the hostage-taker. brief it so that it knows that it is the hostage taker!")
         assert len(definition) > 0, "LLM ERROR"
-        character = Character("hostage_taker.txt", name[0].get("arg0"), definition[0].get("arg0"))
+        character = Character("hostage_taker.txt", name[0].get("arg0"), definition[0].get("arg0"), Logger("hostage_taker"))
         print("hostage-taker...")
         return character
     
@@ -25,7 +27,7 @@ class Story:
         assert len(name) > 0, "LLM ERROR"
         definition = self.story_llm.syscall([["CHARACTER", "description text"],], "Generate the character definition for the reporter")
         assert len(definition) > 0, "LLM ERROR"
-        character = Character("reporter.txt", name[0].get("arg0"), definition[0].get("arg0"))
+        character = Character("reporter.txt", name[0].get("arg0"), definition[0].get("arg0"), Logger("reporter"))
         print("reporter...")
         return character
     
