@@ -46,8 +46,7 @@ class LLM:
         if(result):
             self._memory.append({"role": "assistant", "content": response})
 
-            if self.logger != None:
-                self.logger.log_call(temp)
+
             return result
         else:
             print("LLM FAILED #" + str(failcount))
@@ -77,8 +76,6 @@ class LLM:
         result, newReminder = _parseCommands(response, allowed)
 
         if(result):
-            if self.logger != None:
-                self.logger.log_ask(temp, response)
             return result
         else:
             print("LLM FAILED #" + str(failcount))
@@ -111,6 +108,10 @@ class LLM:
         reply = response.json()["choices"][0]["message"]["content"].strip()
 
         clean_reply = reply.replace("\n", " ").replace("\r", "")
+
+        if self.logger != None:
+            self.logger.log(messages, clean_reply)
+
         return clean_reply
 
 def _parseCommands(text, allowed):

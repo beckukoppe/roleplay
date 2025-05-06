@@ -16,13 +16,8 @@ class Logger:
         with open(path, 'w', encoding='utf-8') as f:
             f.write(str(content))
 
-    def log_call(self, history):
+    def log(self, history, response):
         timestamp = self._get_timestamp()
-        filename = f"{self.name}_call_{timestamp}.txt"
-        self._write_log(filename, util.formatted_history(history))
-
-    def log_ask(self, history, ask):
-        timestamp = self._get_timestamp()
-        filename = f"{self.name}_ask_{timestamp}.txt"
-        content = f"{util.formatted_history(history)}\n\nASK:\n{ask}"
+        filename = f"{self.name}_log_{timestamp}.txt"
+        content = f"{util.formatted_history(history)}\nResponse:\n{response}"
         self._write_log(filename, content)
