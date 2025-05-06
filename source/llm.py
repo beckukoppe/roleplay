@@ -20,10 +20,11 @@ class LLM:
     GAMEMASTER_URL = "http://localhost:8081/v1/chat/completions"
     SPEAKER_URL = "http://localhost:8081/v1/chat/completions"
 
-    def __init__(self, server_url, initial_prompt):
+    def __init__(self, server_url, initial_prompt, logger=None):
         self._server_url = server_url
         self._memory = []
         self.syslisten(initial_prompt)
+        self.logger = logger
 
     def __call(self, who, allowed, message, extra, failcount, reminder):
         temp = self._memory.copy()
@@ -44,6 +45,9 @@ class LLM:
 
         if(result):
             self._memory.append({"role": "assistant", "content": response})
+
+            if self.logger != None:
+                self.logger.log_call(self._memory)
             return result
         else:
             print("LLM FAILED #" + str(failcount))
@@ -73,6 +77,8 @@ class LLM:
         result, newReminder = _parseCommands(response, allowed)
 
         if(result):
+            if self.logger != None:
+                self.logger.log_call(self._memory, response)
             return result
         else:
             print("LLM FAILED #" + str(failcount))
