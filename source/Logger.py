@@ -13,7 +13,7 @@ class Logger:
     def _write_log(self, filename, content):
         path = os.path.join(self.log_dir, filename)
         with open(path, 'w', encoding='utf-8') as f:
-            f.write(content)
+            f.write(str(content))
 
     def log_call(self, history):
         timestamp = self._get_timestamp()

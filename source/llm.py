@@ -78,7 +78,7 @@ class LLM:
 
         if(result):
             if self.logger != None:
-                self.logger.log_call(self._memory, response)
+                self.logger.log_ask(self._memory, response)
             return result
         else:
             print("LLM FAILED #" + str(failcount))
