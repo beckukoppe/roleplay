@@ -111,6 +111,8 @@ class LLM:
 
         if self.logger != None:
             self.logger.log(messages, clean_reply)
+        else:
+            print("logger is none")
 
         return clean_reply
 

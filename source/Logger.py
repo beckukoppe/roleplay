@@ -9,7 +9,7 @@ class Logger:
         os.makedirs(self.log_dir, exist_ok=True)
 
     def _get_timestamp(self):
-        return datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        return datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
 
     def _write_log(self, filename, content):
         path = os.path.join(self.log_dir, filename)
@@ -20,4 +20,6 @@ class Logger:
         timestamp = self._get_timestamp()
         filename = f"{self.name}_log_{timestamp}.txt"
         content = f"{util.formatted_history(history)}\nResponse:\n{response}"
+        print("log")
         self._write_log(filename, content)
+        return
