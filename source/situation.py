@@ -100,7 +100,7 @@ class Situation:
             c = self.characters[i]
 
             #c.syslisten("#SAY(" + talking.getName() + ", " + text + ")")
-            response = c.llm.sysask([CMD.NOTHING, CMD.FORCEEND, CMD.PROPOSEEND], "Do you want to perform an action?") #TODO
+            response = c.llm.sysask([CMD.NOTHING, CMD.FORCEEND, CMD.PROPOSEEND], "Do you want to perform an action? (think about which role you play and what you have said already!)") #TODO
             assert len(response) > 0, "LLM ERROR"
             for cmd in response:
                 if(cmd.get("command") == "FORCEEND"):
@@ -175,7 +175,7 @@ class Situation:
         i = 0
         while i < len(self.characters): 
             c = self.characters[i]
-            response = c.llm.sysask([CMD.NOTHING, CMD.FORCEEND, CMD.PROPOSEEND, CMD.SAY], "#YOURTURN(do you want to perform an action (maybe say something, or leave)? if not #NOTHING)")
+            response = c.llm.sysask([CMD.NOTHING, CMD.FORCEEND, CMD.PROPOSEEND, CMD.SAY], "Do you want to perform an action? (think about which role you play and what you have said already!)")
             assert len(response) > 0, "LLM ERROR"
             someone = False
             for cmd in response:
