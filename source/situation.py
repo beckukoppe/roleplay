@@ -58,7 +58,7 @@ class Situation:
     def leave(self):
         self.gamemaster.summarize(self.transcript)
 
-        response = self.gamemaster.ask([CMD.NOTHING, CMD.OBJECTIVE], "#NEWOBJECTIVES - answer with #NOTHING or the objective syntax!")
+        response = self.gamemaster.ask([CMD.NOTHING, CMD.OBJECTIVE], "#NEWOBJECTIVES - answer with #NOTHING or the objective syntax. But only when there was a concrete objective!")
         print(response)
         assert len(response) > 0, "LLM ERROR"
         for cmd in response:

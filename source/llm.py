@@ -14,7 +14,7 @@ class CMD:
     SUMMARY = [ "SUMMARY", "summarized text" ]
     SCENARIO = [ "SCENARIO", "scenario description text" ]
 
-    OBJECTIVE = [ "OBJECTIVE", "name", "description", "time at which it becomes invalid" ]
+    OBJECTIVE = [ "OBJECTIVE", "name", "description", "time at which it becomes invalid as HH:MM in 24-hour format" ]
 class LLM:
     STORY_URL = "http://localhost:8081/v1/chat/completions"
     GAMEMASTER_URL = "http://localhost:8081/v1/chat/completions"
