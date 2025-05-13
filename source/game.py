@@ -2,6 +2,7 @@ from story import Story
 from situation import Situation
 from event import Event
 from action import Action
+from operation import Operation
 
 REPORTER_COUNT = 2
 
@@ -26,9 +27,26 @@ class Game:
             reporter = story.prepareReporter()
             self.reporters.append(reporter)
 
-        self.situation = self.officeEvent
+        self.situation = self.office
         self.enviroment.tick();
     
+        self.staged_events = []
+    
+
+    def update(self):
+        print("Time: " + self.enviroment.getTime())
+
+        if(self.situation.isEnd()):
+            self.offerSituations()
+        else:
+            if(self.situation != None):
+                self.situation.update()
+
+        self.enviroment.tick();
+
+        #self.gamemaster.update()
+        #TODO prossesGameMasterCommands
+
         # EVENT
         for event in self.staged_events:
             if(event.isNow()):
@@ -59,7 +77,6 @@ class Game:
             self.situation.leave()
 
         while True:
-            print("=== Main Menu ===")
 
             # Statische Aktionsliste
             actions = [
@@ -69,7 +86,7 @@ class Game:
 
             letter = 'a'
 
-            response = self.gamemaster.ask([["NONE"], ["SPEAKTOHOSTAGETAKER"], ["HOLDPRESSCONFERENCE"], ["DYNAMICOPERATION", "name", "description"]], "What options does the user have? what actions can je do?  which does the current situation allow him to do?")
+            response = self.gamemaster.ask([["NONE"], ["SPEAKTOHOSTAGETAKER"], ["HOLDPRESSCONFERENCE"], ["DYNAMICOPERATION", "name", "description", "agent_name"]], "What options does the user have? what actions can je do?  which does the current situation allow him to do? Give all possible options! But be aware that your answer is interpreted. so no extra commands other than the one for allowing options. #NONE is a command only to use when nothing is possible for the player to do right now. replace the <...> with a text string that coresponds to it")
             assert len(response) > 0, "LLM ERROR"
             for cmd in response:                    
                 if(cmd.get("command") == "SPEAKTOHOSTAGETAKER"):
@@ -77,9 +94,16 @@ class Game:
                 if(cmd.get("command") == "HOLDPRESSCONFERENCE"):
                     actions.append(Action(letter, "Hold press-conference", lambda: self.startSituation("press_conference", self.reporters.copy())));
                 if(cmd.get("command") == "DYNAMICOPERATION"):
-                    actions.append(Action(letter, cmd.get("arg0", lambda: self.startSituation("arg0", self.reporters.copy())));
+                    name = cmd.get("arg0")
+                    description = cmd.get("arg1")
+                    agent_name = cmd.get("arg2")
+                    print(cmd)
+                    op = Operation(description, agent_name, self.gamemaster)
+                    actions.append(Action(letter, name, lambda: op.start()));
 
-                letter += 1
+                letter = chr(ord(letter) + 1)
+
+            print("=== Main Menu ===")
 
             for a in actions:
                 print(f"{a.id}. {a.description}")

@@ -18,20 +18,18 @@ class Gamemaster:
         assert len(response) > 0, "Gamemaster response is invalid"
         return response[0].get("arg0")
     
-    def call(self, message, context=None):
+    def call(self, allowed, message, context=None):
         if(None == context):
             context = ""
-        return self.__llm.syscall(message, "#CURRENTTIME{" + self.enviroment.getTime() + "}" + context)
+        return self.__llm.syscall(allowed, message, "#CURRENTTIME{" + self.enviroment.getTime() + "}" + context)
 
-    def ask(self, message, context=None):
+    def ask(self, allowed, message, context=None):
         if(None == context):
             context = ""
-        return self.__llm.sysask(message, "#CURRENTTIME{" + self.enviroment.getTime() + "}" + context)
+        return self.__llm.sysask(allowed, message, "#CURRENTTIME{" + self.enviroment.getTime() + "}" + context)
     
-     def listen(self, message, context=None):
-        if(None == context):
-            context = ""
-        return self.__llm.syslisten(message, "#CURRENTTIME{" + self.enviroment.getTime() + "}" + context)
+    def listen(self, message):
+        return self.__llm.syslisten(message)
 
     def summarize(self, conversation):
         self.__llm.sysask([CMD.SUMMARY,], "summarize the following conversation. think about what that means for the story: " + conversation)

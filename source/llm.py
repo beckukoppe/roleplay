@@ -27,13 +27,7 @@ class LLM:
         self.logger = logger
 
     def __call(self, who, allowed, message, extra, failcount, reminder):
-        temp = self._memory.copy()
-
-        if(extra != None):
-            temp.append({"role": "system", "content": extra})
-
-        temp.append({"role": "system", "content": _formatCommandHint(allowed)})
-
+        temp = self._memory.copy() 
         temp.append({"role": who, "content": message})
         self._memory.append({"role": who, "content": message})
 
@@ -118,28 +112,26 @@ class LLM:
 
 def _parseCommands(text, allowed):
     if not allowed or not isinstance(allowed[0], list):
-        raise TypeError(f"Expected a list for allowed command")
+        raise TypeError("Expected a list of allowed commands")
 
-    # Erlaubte Kommandonamen extrahieren
+    # Liste erlaubter Kommandonamen
     command_names = [cmd[0] for cmd in allowed]
 
-    # Regex pattern bilden
+    # Regex zur Erkennung von Befehlen: #CMD(...) oder #CMD
     command_pattern = '|'.join(re.escape(cmd) for cmd in command_names)
-    pattern = rf'#({command_pattern})(?:\(([^)]*)\))?'
+    pattern = rf'#({command_pattern})(?:\(([^#()]*)\))?'  # kein # oder ( ) innerhalb Parameter
 
     matches = list(re.finditer(pattern, text))
     if not matches:
-        str = ""
-        for elem in allowed:
-            str += __formatCommand(elem) + ", "
-
-        return None,"To answer use one of the following commands with correct syntax: " + str
+        help_text = "; ".join(__formatCommand(elem) for elem in allowed)
+        return None, "To answer use one of the following commands with correct syntax: " + help_text
 
     results = []
     for match in matches:
         command, param = match.groups()
         ans = {'command': command}
 
+        # Parameter parsen, wenn vorhanden
         if param is not None:
             args = [p.strip() for p in param.split(';')] if param.strip() else []
             for i, arg in enumerate(args):
@@ -147,12 +139,16 @@ def _parseCommands(text, allowed):
 
         results.append(ans)
 
-    # Fehlerprüfung
+    # Validierung
     reminder = ""
     for cmd in results:
         reminder += __checkCommand(cmd, allowed)
 
+    if reminder:
+        return None, reminder
+
     return results, ""
+
 
 
 def __formatCommand(cmd: list) -> str:
@@ -168,7 +164,7 @@ def __formatCommand(cmd: list) -> str:
     if not args:
         return f"#{command_name}"
     else:
-        joined_args = ", ".join(f"<{arg}>" for arg in args)
+        joined_args = "; ".join(f"<{arg}>" for arg in args)
         return f"#{command_name}({joined_args})"
 
 def __checkCommand(cmd: dict, allowed_cmds: list) -> str:
@@ -181,11 +177,12 @@ def __checkCommand(cmd: dict, allowed_cmds: list) -> str:
     # Suche erlaubten Befehl in erlaubten Kommandos
     matched = [entry for entry in allowed_cmds if entry[0] == name]
     if not matched:
-        allowed_names = ", ".join(entry[0] for entry in allowed_cmds)
+        allowed_names = "; ".join(entry[0] for entry in allowed_cmds)
         return f"Unknown command '{name}'. Allowed are: {allowed_names}"
 
     # Erwartete Argumente vergleichen
     expected = matched[0][1:]
+    print("expected: " + str(len(expected)) + " provided: " + str(len(given_args)))
     if len(given_args) != len(expected):
         correct_syntax = __formatCommand([name] + expected)
         return f"Wrong usage of #{name}. Expected syntax: {correct_syntax}"
@@ -199,6 +196,6 @@ def _formatCommandHint(allowed_cmds: list) -> str:
     
     str = ""
     for elem in allowed_cmds:
-        str += __formatCommand(elem) + ", "
+        str += __formatCommand(elem) + "; "
 
     return "To answer use one of the following commands with correct syntax: " + str

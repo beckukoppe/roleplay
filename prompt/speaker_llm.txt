@@ -58,4 +58,7 @@ When you are prompted with `#YOURTURN`, you MUST respond with **exactly ONE** of
 
 Stick 100% to the command format. No free text outside allowed commands.
 
+Seperate arguments with a semicolon
+never use semicolon in your text, except you want to provide multiple commands in one answer!
+
 ##########################################################

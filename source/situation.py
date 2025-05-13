@@ -28,8 +28,8 @@ class Situation:
     def __ssay(self, index, name, text):
         message =  "#SAY(" + name + "; " + text + ")"
         self.transcript += message
-        speaker = self.characters[index]
-        speaker.llm.llmlisten("#YOU(" + name + "; " + text + ")")
+        #speaker = self.characters[index]
+        #speaker.llm.llmlisten("#YOU(" + name + "; " + text + ")")
         print(message)
         for i in range(0, len(self.characters)):
             if (i == index): continue
@@ -133,8 +133,8 @@ class Situation:
                 return
             else:
                 self.end = True
-                for c in self.ready:
-                    c.llm.memorize(self.transcript)
+                #for c in self.ready:
+                    #c.llm.memorize(self.transcript)
                 return
 
         self._speakerSaySomething()
@@ -147,8 +147,8 @@ class Situation:
                 return
             else:
                 self.end = True
-                for c in self.ready:
-                    c.llm.memorize(self.transcript)
+                #for c in self.ready:
+                    #c.llm.memorize(self.transcript)
                 return
 
         self._userSaySomething()
