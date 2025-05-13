@@ -16,5 +16,3 @@ class Character:
     def wannaTalk(self, situation):
         return False
     
-
-        

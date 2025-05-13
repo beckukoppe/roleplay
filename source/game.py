@@ -32,8 +32,8 @@ class Game:
         # EVENT
         for event in self.staged_events:
             if(event.isNow()):
-                print("now")
-                #Tell gamemaster
+                event.happen()
+                self.gamemaster.listen("#INFO(" + event.name + " - " + event.description + " just happened)")
 
         #self.gamemaster.update()
         #TODO prossesGameMasterCommands
@@ -67,18 +67,24 @@ class Game:
                 Action("0", "End Game", self.endGame)
             ]
 
+            letter = 'a'
+
             response = self.gamemaster.ask([["NONE"], ["SPEAKTOHOSTAGETAKER"], ["HOLDPRESSCONFERENCE"], ["DYNAMICOPERATION", "name", "description"]], "What options does the user have? what actions can je do?  which does the current situation allow him to do?")
             assert len(response) > 0, "LLM ERROR"
             for cmd in response:                    
                 if(cmd.get("command") == "SPEAKTOHOSTAGETAKER"):
-                    actions.append(Action("h", "Speak with hostage-taker", lambda: self.startSituation("speak_hostage_taker", [self.hostage_taker])));
+                    actions.append(Action(letter, "Speak with hostage-taker", lambda: self.startSituation("speak_hostage_taker", [self.hostage_taker])));
                 if(cmd.get("command") == "HOLDPRESSCONFERENCE"):
-                    actions.append(Action("h", "Hold press-conference", lambda: self.startSituation("press_conference", self.reporters)));
+                    actions.append(Action(letter, "Hold press-conference", lambda: self.startSituation("press_conference", self.reporters.copy())));
                 if(cmd.get("command") == "DYNAMICOPERATION"):
-                    print("dynamic!")
+                    actions.append(Action(letter, cmd.get("arg0", lambda: self.startSituation("arg0", self.reporters.copy())));
+
+                letter += 1
 
             for a in actions:
                 print(f"{a.id}. {a.description}")
+
+            print("=================")
 
             choice = input("Enter your choice: ").strip()
 

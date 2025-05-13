@@ -5,7 +5,11 @@ class Event:
         self.name = name
         self.description = description
         self.time = time
+        self.happened = False
 
     def isNow(self, time):
-        return time == self.time
+        return time >= self.time and not self.happened
+    
+    def happen(self):
+        self.happened = True
        

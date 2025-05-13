@@ -46,7 +46,7 @@ class Operation:
 
         # Jetzt kommt eine Entscheidungssituation
         cmds = self.gamemaster.ask(
-            [Operation.DECIDE, CMD.NOTHING, Operation.END],
+            [Operation.DECIDE, Operation.END],
             "#DECIDE - Decision point reached. Provide options or end operation."
         )
 
