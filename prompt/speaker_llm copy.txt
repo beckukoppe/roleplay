@@ -47,4 +47,8 @@ Dont use any other command than the ones provided here: #SAY, #FORCEEND, #PROPOS
 
 Dont repeat yourself to stupidly. Be like a human would be. If a conversation leads in a loop or doesnt make sense anymore, quit it with #FORCEEND.
 
+---
+
+Seperate arguments with a semicolon
+
 ##########################################################

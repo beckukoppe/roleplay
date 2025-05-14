@@ -58,7 +58,7 @@ class Situation:
     def leave(self):
         self.gamemaster.summarize(self.transcript)
 
-        response = self.gamemaster.ask([CMD.NOTHING, CMD.OBJECTIVE], "#NEWOBJECTIVES - answer with #NOTHING or the objective syntax!")
+        response = self.gamemaster.ask([CMD.NOTHING, CMD.OBJECTIVE], "#NEWOBJECTIVES - answer with #NOTHING or the objective syntax. But only when there was a concrete objective!")
         print(response)
         assert len(response) > 0, "LLM ERROR"
         for cmd in response:
@@ -133,8 +133,8 @@ class Situation:
                 return
             else:
                 self.end = True
-                for c in self.ready:
-                    c.llm.memorize(self.transcript)
+                #for c in self.ready:
+                    #c.llm.memorize(self.transcript)
                 return
 
         self._speakerSaySomething()
@@ -147,8 +147,8 @@ class Situation:
                 return
             else:
                 self.end = True
-                for c in self.ready:
-                    c.llm.memorize(self.transcript)
+                #for c in self.ready:
+                    #c.llm.memorize(self.transcript)
                 return
 
         self._userSaySomething()
