@@ -22,3 +22,4 @@ Mögliche Lösungen:
 - Systemprompts bündeln in einen
 - Genau dazu sagen dass man die rolle nicht wechseln soll
 - vlt yourturn gar nicht schreiben??
+- bei doppeltem request -> user schreibt 'nichts' (Frage-Anwort-Frage Schema einhalten)

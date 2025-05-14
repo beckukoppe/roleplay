@@ -23,13 +23,13 @@ class Situation:
         self.__sysbrodcast("#SCENARIO(" + text + ")")
 
     def __usay(self, text):
-        self.__userbrodcast("#USERSAY(" + text + ")")
+        self.__userbrodcast("#PLAYERSAY(" + text + ")")
 
     def __ssay(self, index, name, text):
         message =  "#SAY(" + name + "; " + text + ")"
         self.transcript += message
-        speaker = self.characters[index]
-        speaker.llm.llmlisten("#YOU(" + name + "; " + text + ")")
+        #speaker = self.characters[index]
+        #speaker.llm.llmlisten("#YOU(" + name + "; " + text + ")")
         print(message)
         for i in range(0, len(self.characters)):
             if (i == index): continue
@@ -50,7 +50,7 @@ class Situation:
 
          for i in range(0, len(self.characters)):
             c = self.characters[i]
-            c.llm.syslisten(message)
+            c.llm.system(" THE CURRENT SITUATION: " + message)
 
     def isEnd(self):
         return self.end
@@ -79,7 +79,7 @@ class Situation:
         for i in range(0, len(self.characters)):
             c = self.characters[i]
 
-            response = c.llm.sysask([CMD.NOTHING, CMD.FORCEEND, CMD.PROPOSEEND, CMD.SAY], "Do you want to perform an action?") #TODO
+            response = c.llm.usercall([CMD.NOTHING, CMD.FORCEEND, CMD.PROPOSEEND, CMD.SAY], "Do you want to perform an action?")
             assert len(response) > 0, "LLM ERROR"
             for cmd in response:
                 if(cmd.get("command") == "SAY"):
@@ -100,7 +100,7 @@ class Situation:
             c = self.characters[i]
 
             #c.syslisten("#SAY(" + talking.getName() + ", " + text + ")")
-            response = c.llm.sysask([CMD.NOTHING, CMD.FORCEEND, CMD.PROPOSEEND], "Do you want to perform an action? (think about which role you play and what you have said already!)") #TODO
+            response = c.llm.usercall([CMD.NOTHING, CMD.FORCEEND, CMD.PROPOSEEND], "Do you want to perform an action?")
             assert len(response) > 0, "LLM ERROR"
             for cmd in response:
                 if(cmd.get("command") == "FORCEEND"):
@@ -175,7 +175,7 @@ class Situation:
         i = 0
         while i < len(self.characters): 
             c = self.characters[i]
-            response = c.llm.sysask([CMD.NOTHING, CMD.FORCEEND, CMD.PROPOSEEND, CMD.SAY], "Do you want to perform an action? (think about which role you play and what you have said already!)")
+            response = c.llm.usercall([CMD.NOTHING, CMD.FORCEEND, CMD.PROPOSEEND, CMD.SAY], "Do you want to perform an action?")
             assert len(response) > 0, "LLM ERROR"
             someone = False
             for cmd in response:

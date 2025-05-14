@@ -10,7 +10,7 @@ class Game:
 
         story = Story()
 
-        self.enviroment = story.prepareEnviroment()
+        self.enviroment = story.prepareEnvironment()
 
         self.gamemaster = story.prepareGamemaster(self.enviroment,)
 

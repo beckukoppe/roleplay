@@ -7,12 +7,12 @@ from Logger import Logger
 class Gamemaster:
     def __init__(self, preperation, enviroment):
         self.__llm = LLM(LLM.GAMEMASTER_URL, util.readFile("prompt/gamemaster.txt"), Logger("Gamemaster"))
-        self.__llm.syslisten(preperation)
+        self.__llm.system("You will now receive the info story prompt: " + preperation)
         self.enviroment = enviroment
         self.objectives = []
 
     def getScenario(self, scenario_name, participants):
-        response = self.__llm.syscall([CMD.SCENARIO,], f"provide scenario for {scenario_name} with {participants}")
+        response = self.__llm.usercall([CMD.SCENARIO,], f"Now provide the '{scenario_name}' scenario with '{participants}'")
         assert len(response) > 0, "Gamemaster response is invalid"
         return response[0].get("arg0")
     

@@ -23,65 +23,71 @@ class LLM:
     def __init__(self, server_url, initial_prompt, logger=None):
         self._server_url = server_url
         self._memory = []
-        self.syslisten(initial_prompt)
+        self.system_buffer = ""
+        self.system(initial_prompt)
         self.logger = logger
 
-    def __call(self, who, allowed, message, extra, failcount, reminder):
+    def system(self, prompt):
+        self.system_buffer += prompt + "\n"
+
+    def __call(self, who, allowed, message, extra, failcount, reminder, save=True):
+        # Davor gesammelter Buffer
+        buffer = self.system_buffer
+
+        # Extra Daten die nicht in memory sollen
+        if(extra != None):
+            buffer += extra + "\n"
+
+        # Erlaubte Commands
+        buffer += _formatCommandHint(allowed) + "\n"
+
+        # memory
         temp = self._memory.copy()
 
-        if(extra != None):
-            temp.append({"role": "system", "content": extra})
-
-        temp.append({"role": "system", "content": _formatCommandHint(allowed)})
-
-        temp.append({"role": who, "content": message})
-        self._memory.append({"role": who, "content": message})
-
+        # Reminder wenn response failed
         if(reminder):
-            temp.append({"role": SYSTEM, "content": "[REMINDER]" + reminder})
+            buffer = "[REMINDER] " + reminder + "\n"
+
+
+        # buffer als 'role: system' hinzufpgen
+        temp.append({"role": SYSTEM, "content": buffer})
+
+        # Eigentliche Message
+        temp.append({"role": who, "content": message})
+
+        if save:
+            self.syslisten(buffer)
+            self.system_buffer = ""
+            self._memory.append({"role": who, "content": message})
 
         response = self.__send(temp)
+
+        # Davor gesammelter Buffer in memory speichern falls save
+        
+
         result, newReminder = _parseCommands(response, allowed)
 
         if(result):
-            self._memory.append({"role": "assistant", "content": response})
-
-
+            # Falls save, response in memory speichern
+            if save:
+                self.llmlisten(response)
             return result
         else:
             print("LLM FAILED #" + str(failcount))
             print("SAID:" + response + "\n" + "REMINDER:" + newReminder + "\n")
             return self.__call(who, allowed, message, extra, failcount + 1, newReminder)
-        
+    
     def usercall(self, allowed, message="", extra=None, failcount=0, reminder=None):
         return self.__call("user", allowed, message, extra, failcount, reminder)
     
     def syscall(self, allowed, message="", extra=None, failcount=0, reminder=None):
         return self.__call("system", allowed, message, extra, failcount, reminder)
 
+    # system call which dont get saved in memory, 'Call'-wrapper with save=False; 
     def sysask(self, allowed, message="", extra=None, failcount=0, reminder=None):
-        temp = self._memory.copy()
-
-        if(extra):
-            temp.append({"role": "system", "content": extra})
-
-        temp.append({"role": "system", "content": _formatCommandHint(allowed)})
-
-        temp.append({"role": "system", "content": message})
-
-        if(reminder):
-            temp.append({"role": SYSTEM, "content": "[REMINDER]" + reminder})
-
-        response = self.__send(temp)
-        result, newReminder = _parseCommands(response, allowed)
-
-        if(result):
-            return result
-        else:
-            print("LLM FAILED #" + str(failcount))
-            print("SAID:" + response + "\n" + "REMINDER:" + newReminder + "\n")
-            return self.sysask(allowed, message, extra, failcount + 1, newReminder)
+        self.__call("system", allowed, message, extra, failcount, reminder, False)
     
+    # Save to memory
     def __listen(self, who, message):
         self._memory.append({"role": who, "content": message})
 

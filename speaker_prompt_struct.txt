@@ -1,0 +1,4 @@
+General Instruction
+Speaker Role Prompt
+Speaker Character Prompt
+Situation
