@@ -114,6 +114,7 @@ class Game:
 
             for a in actions:
                 if a.id == choice:
+                    self.gamemaster.listen("player selected: " + a.description);
                     a.callback()
                     return
 

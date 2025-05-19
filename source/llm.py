@@ -1,10 +1,6 @@
 import re
 import requests
 
-ASSISTANT = "assistant"
-USER = "user"
-SYSTEM = "system"
-
 class CMD:
     NOTHING = [ "NOTHING", ]
     PROPOSEEND = [ "PROPOSEEND", ]
@@ -20,19 +16,17 @@ class LLM:
     GAMEMASTER_URL = "http://localhost:8081/v1/chat/completions"
     SPEAKER_URL = "http://localhost:8081/v1/chat/completions"
 
-    def __init__(self, server_url, initial_prompt, logger=None):
-        self._server_url = server_url
+    ASSISTANT = "assistant"
+    USER = "user"
+    SYSTEM = "system"
+
+    def __init__(self, url, logger=None):
+        self._server_url = url
         self._memory = []
-        self.system_buffer = ""
-        self.system(initial_prompt)
         self.logger = logger
 
-    def system(self, prompt):
-        self.system_buffer += prompt + "\n"
-
     def __call(self, who, allowed, message, extra, failcount, reminder, save=True):
-        # Davor gesammelter Buffer
-        buffer = self.system_buffer
+        buffer = ""
 
         # Extra Daten die nicht in memory sollen
         if(extra != None):
@@ -48,61 +42,51 @@ class LLM:
         if(reminder):
             buffer = "[REMINDER] " + reminder + "\n"
 
-
-        # buffer als 'role: system' hinzufpgen
-        temp.append({"role": SYSTEM, "content": buffer})
-
-        # Eigentliche Message
-        temp.append({"role": who, "content": message})
-
-        if save:
-            self.syslisten(buffer)
-            self.system_buffer = ""
-            self._memory.append({"role": who, "content": message})
+        self.__save(temp, LLM.SYSTEM, buffer)
+        self.__save(temp, who, message)
 
         response = self.__send(temp)
 
-        # Davor gesammelter Buffer in memory speichern falls save
-        
-
         result, newReminder = _parseCommands(response, allowed)
 
-        if(result):
-            # Falls save, response in memory speichern
-            if save:
-                self.llmlisten(response)
-            return result
-        else:
+        if not result:
             print("LLM FAILED #" + str(failcount))
             print("SAID:" + response + "\n" + "REMINDER:" + newReminder + "\n")
-            return self.__call(who, allowed, message, extra, failcount + 1, newReminder)
+            return self.__call(who, allowed, message, extra, failcount + 1, newReminder, save)
+        
+        if save:
+            self.__save(self._memory, who, message)
+            self.__save(self._memory, LLM.ASSISTANT, response)
+
+        return result
     
     def usercall(self, allowed, message="", extra=None, failcount=0, reminder=None):
-        return self.__call("user", allowed, message, extra, failcount, reminder)
+        return self.__call(LLM.USER, allowed, message, extra, failcount, reminder)
     
     def syscall(self, allowed, message="", extra=None, failcount=0, reminder=None):
-        return self.__call("system", allowed, message, extra, failcount, reminder)
+        return self.__call(LLM.SYSTEM, allowed, message, extra, failcount, reminder)
 
-    # system call which dont get saved in memory, 'Call'-wrapper with save=False; 
     def sysask(self, allowed, message="", extra=None, failcount=0, reminder=None):
-        self.__call("system", allowed, message, extra, failcount, reminder, False)
+        return self.__call(LLM.SYSTEM, allowed, message, extra, failcount, reminder, False)
     
-    # Save to memory
-    def __listen(self, who, message):
-        self._memory.append({"role": who, "content": message})
-
-    def userlisten(self, message):
-        self.__listen("user", message)
-
     def syslisten(self, message):
-        self.__listen("system", message)
+        self.__save(self._memory, LLM.SYSTEM, message)
+    
+    def __save(self, mem, who, message):
+        if len(mem) == 0:
+            mem.append({"role": who, "content": message})
+            return
 
-    def llmlisten(self, message):
-        self.__listen("assistant", message)
+        last = mem[-1]
+        if last.get("role") == who:
+            last["content"] += " " + message
+        else:
+            mem.append({"role": who, "content": message})
 
+
+    #Send messages to llm an get response
     def __send(self, messages):
         response = requests.post(self._server_url, json={
-                #"model": MODEL_NAME,
                 "messages": messages,
                 "temperature": 0.7
         }, headers={"Content-Type": "application/json"})
@@ -117,8 +101,6 @@ class LLM:
 
         if self.logger != None:
             self.logger.log(messages, clean_reply)
-        else:
-            print("logger is none")
 
         return clean_reply
 
@@ -131,7 +113,7 @@ def _parseCommands(text, allowed):
 
     # Regex zur Erkennung von Befehlen: #CMD(...) oder #CMD
     command_pattern = '|'.join(re.escape(cmd) for cmd in command_names)
-    pattern = rf'#({command_pattern})(?:\(([^#()]*)\))?'  # kein # oder ( ) innerhalb Parameter
+    pattern = rf'#({command_pattern})(?:\{{([^#{{}}]*)\}})?'
 
     matches = list(re.finditer(pattern, text))
     if not matches:
@@ -177,7 +159,7 @@ def __formatCommand(cmd: list) -> str:
         return f"#{command_name}"
     else:
         joined_args = "; ".join(f"<{arg}>" for arg in args)
-        return f"#{command_name}({joined_args})"
+        return f"#{command_name}{{{joined_args}}}"
 
 def __checkCommand(cmd: dict, allowed_cmds: list) -> str:
     if "command" not in cmd:

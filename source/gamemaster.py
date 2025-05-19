@@ -8,10 +8,12 @@ from objective import Objective
 
 class Gamemaster:
     def __init__(self, preperation, enviroment):
-        self.__llm = LLM(LLM.GAMEMASTER_URL, util.readFile("prompt/gamemaster.txt"), Logger("Gamemaster"))
-        self.__llm.system("You will now receive the info story prompt: " + preperation)
+        self.__llm = LLM(LLM.GAMEMASTER_URL, Logger("Gamemaster"))
         self.enviroment = enviroment
         self.objectives = []
+
+        self.__llm.syslisten(util.readFile("prompt/gamemaster.txt"))
+        self.__llm.syslisten("You will now receive the info story prompt: " + preperation)
 
     def getScenario(self, scenario_name, participants):
         response = self.__llm.usercall([CMD.SCENARIO,], f"Now provide the '{scenario_name}' scenario with '{participants}'")
@@ -26,7 +28,7 @@ class Gamemaster:
     def ask(self, allowed, message, context=None):
         if(None == context):
             context = ""
-        return self.__llm.sysask(allowed, message, "#CURRENTTIME{" + self.enviroment.getTime() + "}" + context)
+        return self.__llm.syscall(allowed, message, "#CURRENTTIME{" + self.enviroment.getTime() + "}" + context)
     
     def listen(self, message):
         return self.__llm.syslisten(message)

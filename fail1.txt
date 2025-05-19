@@ -1,0 +1,26 @@
+[PROTOKOLL] SPIELER wählt: Start negotiation
+log
+expected: 1 provided: 1
+expected: 0 provided: 0
+[PROTOKOLL] The call is connected, and you hear Alex's voice on the other end. He sounds agitated and anxious. "Who is this?" he demands.
+log
+expected: 2 provided: 2
+{'command': 'DECIDE', 'arg0': 'How do you want to respond to Alex?', 'arg1': 'Introduce yourself calmly/Try to understand his frustration/Try to get a clear picture of the situation/End the conversation'}
+[PROTOKOLL] Special Ops Team Officer fragt: How do you want to respond to Alex?
+0. Introduce yourself calmly
+1. Try to understand his frustration
+2. Try to get a clear picture of the situation
+3. End the conversation
+Deine Entscheidung: 1
+[PROTOKOLL] SPIELER wählt: Try to understand his frustration
+log
+expected: 1 provided: 1
+[PROTOKOLL] You respond, "Alex, I can hear that you're really upset. Can you tell me what's been going on that's made you feel this way?"
+log
+expected: 2 provided: 2
+{'command': 'DECIDE', 'arg0': 'How does Alex respond to your attempt to understand his frustration?', 'arg1': 'Alex starts crying/ Alex starts shouting/ Alex starts telling his story/End the conversation'}
+[PROTOKOLL] Special Ops Team Officer fragt: How does Alex respond to your attempt to understand his frustration?
+0. Alex starts crying
+1.  Alex starts shouting
+2.  Alex starts telling his story
+3. End the conversation

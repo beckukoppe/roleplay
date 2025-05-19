@@ -42,7 +42,7 @@ class Situation:
 
          for i in range(0, len(self.characters)):
             c = self.characters[i]
-            c.llm.userlisten(message)
+            c.llm.syslisten("#USERSAY{" + message + "}")
 
     def __sysbrodcast(self, message):
          self.transcript += message
@@ -50,7 +50,7 @@ class Situation:
 
          for i in range(0, len(self.characters)):
             c = self.characters[i]
-            c.llm.system(" THE CURRENT SITUATION: " + message)
+            c.llm.syslisten(" THE CURRENT SITUATION: " + message)
 
     def isEnd(self):
         return self.end
@@ -100,7 +100,7 @@ class Situation:
             c = self.characters[i]
 
             #c.syslisten("#SAY(" + talking.getName() + ", " + text + ")")
-            response = c.llm.usercall([CMD.NOTHING, CMD.FORCEEND, CMD.PROPOSEEND], "Do you want to perform an action?")
+            response = c.llm.usercall([CMD.NOTHING, CMD.FORCEEND, CMD.PROPOSEEND], "Do you want to perform an action? No say ist allowed. to say somethin wait for your turn to do so with #NOTHING")
             assert len(response) > 0, "LLM ERROR"
             for cmd in response:
                 if(cmd.get("command") == "FORCEEND"):

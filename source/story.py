@@ -9,7 +9,8 @@ from Logger import Logger
 
 class Story:
     def __init__(self):
-        self.story_llm = LLM(LLM.STORY_URL, util.readFile("prompt/story_llm.txt"), Logger("story"))
+        self.story_llm = LLM(LLM.STORY_URL, Logger("story"))
+        self.story_llm.syslisten(util.readFile("prompt/story_llm.txt"))
         self.story = self.story_llm.usercall([["STORY", "story_content"],], "Now generate the story", )
         print("story...")
         

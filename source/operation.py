@@ -90,15 +90,15 @@ class Operation:
 
                 self.gamemaster.listen(question + " - " + selected)
 
-                return
+                continue
 
             elif cmd.get("command") == "NOTHING":
-                return  # Routinefortgang
+                continue  # Routinefortgang
 
             elif cmd.get("command") == "END":
                 self.report("Operation has been finished.")
                 self.ended = True
-                return
+                continue
 
     def getPlayerChoice(self, num_options):
         while True:
