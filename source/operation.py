@@ -55,12 +55,12 @@ class Operation:
 
         # Jetzt kommt eine Entscheidungssituation
 
-        if(self.step_count < 5):
+        if(self.step_count < 3):
             cmds = self.gamemaster.ask(
             [   Operation.DECIDE, Operation.END],
                 "#DECIDE - Decision point reached. Provide options or end operation. Seperate question and options with ;.  Seperate options with /. Dont include the options in the question but provide them extra!"
             )
-        elif (self.step_count < 15):
+        elif (self.step_count < 5):
             cmds = self.gamemaster.ask(
             [   Operation.DECIDE, Operation.END],
                 "#DECIDE - Decision point reached. Slowly but surely navigate towards an end of operation! Provide options or end operation. Seperate question and options with ;.  Seperate options with /. Dont include the options in the question but provide them extra!"
